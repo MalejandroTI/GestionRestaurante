@@ -4,7 +4,8 @@ Dentro de este proyecto encontramos la estructura basica de un sistema de gestio
 desde la creacion del modelado relacional hasta un producto final en el que conectaremos
 la base de datos con los respectivos metodos solicitados desde neatbeans
 
-En este repositorio se encontrara la documentacion generada para llegar hasta ese producto final. 
+En este repositorio se encontrara la documentacion generada para llegar hasta ese producto final.
+
 Distribucion: 
   Links de acceso: 
     Draw.io:
