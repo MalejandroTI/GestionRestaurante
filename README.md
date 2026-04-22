@@ -6,9 +6,11 @@ la base de datos con los respectivos metodos solicitados desde neatbeans
 
 En este repositorio se encontrara la documentacion generada para llegar hasta ese producto final.
 
-Distribucion: 
-  Links de acceso: 
+Distribucion:
+
+Links de acceso: 
     Draw.io:
     Modo Lector = https://drive.google.com/file/d/1Ki-i4osE0PLE_nQuk-tWaewi-Chf1X4S/view?usp=sharing
+
 Versiones: 
 NeatBeans = Apache NetBeans IDE 17
