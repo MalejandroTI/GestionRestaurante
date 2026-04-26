@@ -37,7 +37,7 @@ docs/        -> Diagramas y documentación
 **Draw.io (modo lector):**
 https://drive.google.com/file/d/1Ki-i4osE0PLE_nQuk-tWaewi-Chf1X4S/view?usp=sharing
 
-**Documentación del proyecto**
+**Documentación del proyecto:**
 https://docs.google.com/document/d/1NKTvYlMP2FAsKn9u2wyFZ5k3rMAdXIpAu67a3sHOD6g/edit?usp=sharing
 
 ## Tecnologías utilizadas
