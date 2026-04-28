@@ -212,3 +212,36 @@ CREATE INDEX idx_entrega_repartidor   ON entrega_pedido (id_usuario_repartidor);
 CREATE INDEX idx_entrega_tarifa       ON entrega_pedido (id_tarifa);
 
 CREATE INDEX idx_factura_usuario      ON factura (id_usuario);
+
+-- ==============================================================
+-- INSERCIÓN DE DATOS PARA LAS TABLAS ROL, CONFIGURACION Y TARIFA
+-- ==============================================================
+USE restaurante_db_oficial;
+INSERT INTO tarifa(km_min, km_max, precio) VALUES
+(0.0, 0.9, 1.25),
+(1.0, 2.4, 1.50),
+(2.5, 3.4, 1.75),
+(3.5, 3.9, 2.00),
+(4.0, 4.9, 2.25),
+(5.0, 5.9, 2.50),
+(6.0, 6.9, 2.75),
+(7.0, 7.9, 3.00),
+(8.0, 8.9, 3.50),
+(9.0, 9.9, 4.00),
+(10.0, 10.9, 4.50);
+
+-- SQL ROLES --
+INSERT INTO rol(nombre, descripcion) VALUES
+('Administrador', 'Control total del sistema'),
+('Cajero', 'Gestiona pagos y facturación'),
+('Mesero', 'Toma pedidos de los clientes'),
+('Cocinero', 'Prepara los pedidos'),
+('Cliente', 'Realiza pedidos'),
+('Inventario', 'Gestiona stock e insumos'),
+('Repartidor', 'Entrega pedidos a domicilio'),
+('Gerente', 'Supervisa operaciones y reportes');
+
+-- CONFIGURACION --
+INSERT INTO configuracion (nombre, valor, descripcion) VALUES
+('IVA','15', 'Consiste en el recargo del 15% al monto del precio final determinado por el vendedor');
+DESCRIBE configuracion;
