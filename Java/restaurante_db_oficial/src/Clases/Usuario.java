@@ -14,6 +14,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -66,7 +68,12 @@ public class Usuario implements Serializable {
     private String contrasena;
     @Column(name = "activo")
     private Boolean activo;
-    @ManyToMany(mappedBy = "usuarioCollection")
+    @ManyToMany
+    @JoinTable(
+            name = "usuario_rol",
+            joinColumns = @JoinColumn(name = "id_usuario"),
+            inverseJoinColumns = @JoinColumn(name = "id_rol")
+    )
     private Collection<Rol> rolCollection;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "idUsuarioRepartidor")
     private Collection<EntregaPedido> entregaPedidoCollection;
@@ -226,5 +233,5 @@ public class Usuario implements Serializable {
     public String toString() {
         return "Clases.Usuario[ idUsuario=" + idUsuario + " ]";
     }
-    
+
 }

@@ -43,10 +43,7 @@ public class Rol implements Serializable {
     private String nombre;
     @Column(name = "descripcion")
     private String descripcion;
-    @JoinTable(name = "usuario_rol", joinColumns = {
-        @JoinColumn(name = "id_rol", referencedColumnName = "id_rol")}, inverseJoinColumns = {
-        @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")})
-    @ManyToMany
+    @ManyToMany(mappedBy = "rolCollection")
     private Collection<Usuario> usuarioCollection;
     @ManyToMany(mappedBy = "rolCollection")
     private Collection<Permiso> permisoCollection;
@@ -127,5 +124,5 @@ public class Rol implements Serializable {
     public String toString() {
         return "Clases.Rol[ idRol=" + idRol + " ]";
     }
-    
+
 }
