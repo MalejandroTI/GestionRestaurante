@@ -4,11 +4,14 @@
  */
 package Clases;
 
+import ClasesEnum.enums.EstadoPedido;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -40,9 +43,9 @@ public class HistorialPedido implements Serializable {
     @Basic(optional = false)
     @Column(name = "id_historial")
     private Integer idHistorial;
-    @Basic(optional = false)
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado")
-    private String estado;
+    private EstadoPedido estado;
     @Basic(optional = false)
     @Column(name = "fecha_hora")
     @Temporal(TemporalType.TIMESTAMP)
@@ -64,7 +67,7 @@ public class HistorialPedido implements Serializable {
         this.idHistorial = idHistorial;
     }
 
-    public HistorialPedido(Integer idHistorial, String estado, Date fechaHora) {
+    public HistorialPedido(Integer idHistorial, EstadoPedido  estado, Date fechaHora) {
         this.idHistorial = idHistorial;
         this.estado = estado;
         this.fechaHora = fechaHora;
@@ -78,11 +81,11 @@ public class HistorialPedido implements Serializable {
         this.idHistorial = idHistorial;
     }
 
-    public String getEstado() {
+    public EstadoPedido  getEstado() {
         return estado;
     }
 
-    public void setEstado(String estado) {
+    public void setEstado(EstadoPedido  estado) {
         this.estado = estado;
     }
 
@@ -142,5 +145,5 @@ public class HistorialPedido implements Serializable {
     public String toString() {
         return "Clases.HistorialPedido[ idHistorial=" + idHistorial + " ]";
     }
-    
+
 }

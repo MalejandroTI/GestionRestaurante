@@ -29,9 +29,9 @@ public class PedidoService {
     // CREAR PEDIDO
     // =====================================================
     public Pedido crearPedido(Pedido pedido,
-                              EntregaPedido entrega,
-                              Usuario usuario,
-                              Cliente cliente) {
+            EntregaPedido entrega,
+            Usuario usuario,
+            Cliente cliente) {
 
         if (pedido == null) {
             throw new IllegalArgumentException("Pedido requerido");
@@ -167,8 +167,8 @@ public class PedidoService {
     // CAMBIO DE ESTADO
     // =====================================================
     public Pedido cambiarEstado(int idPedido,
-                                EstadoPedido nuevoEstado,
-                                Usuario usuario) {
+            EstadoPedido nuevoEstado,
+            Usuario usuario) {
 
         EntityManager em = emf.createEntityManager();
 
@@ -183,33 +183,41 @@ public class PedidoService {
 
             EstadoPedido actual = pedido.getEstado();
 
-            // =========================
-            // BLOQUEO FINAL
-            // =========================
-            if (actual == EstadoPedido.ENTREGADO ||
-                actual == EstadoPedido.CANCELADO) {
-
-                throw new IllegalStateException("Pedido finalizado no modificable");
+            if (actual == EstadoPedido.ENTREGADO || actual == EstadoPedido.CANCELADO) {
+                throw new IllegalStateException("Pedido finalizado");
             }
 
-            // =========================
-            // VALIDACIÓN DE TRANSICIÓN
-            // =========================
             if (!esTransicionValida(actual, nuevoEstado)) {
-                throw new IllegalStateException(
-                        "Transición inválida: " + actual + " → " + nuevoEstado
-                );
+                throw new IllegalStateException("Transición inválida");
             }
 
+            // 1. actualizar pedido
             pedido.setEstado(nuevoEstado);
-
             em.merge(pedido);
+
+            // 2. crear historial (AQUÍ ES DONDE SE LLENA LA TABLA)
+            HistorialPedido h = new HistorialPedido();
+
+            h.setIdPedido(pedido);
+            h.setIdUsuario(usuario);
+            h.setEstado(nuevoEstado);   // SOLO el estado actual
+            h.setFechaHora(new Date());
+
+            h.setObservacion(
+                    "Cambio de estado de " + actual + " a " + nuevoEstado
+            );
+
+            em.persist(h);
 
             em.getTransaction().commit();
             return pedido;
 
         } catch (Exception e) {
-            em.getTransaction().rollback();
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
             throw new RuntimeException(e);
 
         } finally {
@@ -221,7 +229,7 @@ public class PedidoService {
     // REGLAS DE NEGOCIO DE ESTADOS
     // =====================================================
     private boolean esTransicionValida(EstadoPedido actual,
-                                      EstadoPedido nuevo) {
+            EstadoPedido nuevo) {
 
         switch (actual) {
 
@@ -281,8 +289,8 @@ public class PedidoService {
 
         TypedQuery<String> q = em.createQuery(
                 "SELECT p.codigo FROM Pedido p "
-              + "WHERE p.codigo LIKE :pref "
-              + "ORDER BY p.idPedido DESC",
+                + "WHERE p.codigo LIKE :pref "
+                + "ORDER BY p.idPedido DESC",
                 String.class
         );
 
