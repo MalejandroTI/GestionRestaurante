@@ -245,3 +245,48 @@ INSERT INTO rol(nombre, descripcion) VALUES
 INSERT INTO configuracion (nombre, valor, descripcion) VALUES
 ('IVA','15', 'Consiste en el recargo del 15% al monto del precio final determinado por el vendedor');
 DESCRIBE configuracion;
+
+
+-- INSERTAR DATOS CATEGORIAS --
+INSERT INTO categoria (nombre, descripcion) VALUES
+('Entradas', 'Pequeños platillos para abrir el apetito'),
+('Sopas', 'Caldos tradicionales chinos como Sopa Wonton'),
+('Arroz y Fideos', 'Platos Principales a base de arroz frito y fideos salteados'),
+('Carnes', 'Preparaciones de cerdo, res, pollo y pato con salsas típicas'),
+('Mariscos', 'Camarones, calamares y pescados salteados al Wok con vegetales frescos y condimentos orientales'),
+('Vegetariano', 'Opciones elaboradas solo con verduras, tofu y setas, ideales para quienes prefieren una alimentación sin carne.'),
+('Bebidas', 'Tés chinos calientes, jugos naturales y bebidas tradicionales como el té de jazmín o el té de burbujas'),
+('Postres', 'Dulces orientales como el pastel de luna, bolas de sésamo fritas y helado de té verde');
+
+INSERT INTO producto (id_categoria, nombre, precio) VALUES
+(1, 'Rollitos de Primavera', 4.50),
+(1, 'Dumplings al Vapor', 5.00),
+(1, 'Alitas de Pollo Agridulce', 6.00),
+
+(2, 'Sopa Wonton', 5.50),
+(2, 'Sopa de Fideos Chinos', 4.50),
+(2, 'Sopa Hot and Sour', 5.00),
+
+(3, 'Arroz Frito con Pollo', 7.00),
+(3, 'Fideos Salteados con Verduras', 6.50),
+(3, 'Arroz Chaufa Especial', 8.00),
+
+(4, 'Cerdo Agridulce', 9.00),
+(4, 'Pato Laqueado', 12.00),
+(4, 'Res con Salsa de Ostión', 10.00),
+
+(5, 'Camarones al Wok', 11.00),
+(5, 'Calamares Salteados', 10.50),
+(5, 'Pescado con Jengibre', 12.00),
+
+(6, 'Tofu con Verduras', 7.00),
+(6, 'Salteado de Setas', 6.50),
+(6, 'Rollitos Vegetarianos', 5.50),
+
+(7, 'Té de Jazmín', 2.50),
+(7, 'Té de Burbujas', 3.50),
+(7, 'Jugo Natural de Mango', 3.00),
+
+(8, 'Pastel de Luna', 4.00),
+(8, 'Bolas de Sésamo Fritas', 3.50),
+(8, 'Helado de Té Verde', 4.50);
