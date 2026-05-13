@@ -4,6 +4,15 @@ Proyecto orientado al análisis, diseño y desarrollo de un sistema de gestión 
 
 Dentro de este proyecto se desarrolla la estructura completa del sistema, comenzando con el modelado entidad-relación, transformación al modelo relacional, diseño de la base de datos e implementación progresiva hasta llegar a un producto funcional conectado mediante Java, MySQL y JDBC.
 
+## Implementaciones
+Diferencia entre Service y JPA Controllers
+
+En este proyecto, los JPA Controllers se encargan del acceso directo a la base de datos utilizando JPA (EntityManager), implementando operaciones CRUD como crear, buscar, actualizar y eliminar entidades, sin incluir lógica de negocio.
+
+Por otro lado, la capa Service contiene la lógica de negocio del sistema, coordinando procesos más complejos, validaciones y reglas del negocio, además de utilizar los JPA Controllers para persistir o consultar datos.
+
+En resumen, los JPA Controllers gestionan la persistencia de datos, mientras que los Services gestionan la lógica y reglas del sistema, manteniendo una arquitectura más ordenada y escalable.
+
 ## Funcionalidades principales
 
 * Gestión de usuarios, roles y permisos
