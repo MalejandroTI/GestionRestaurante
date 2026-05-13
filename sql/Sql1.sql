@@ -245,3 +245,15 @@ INSERT INTO rol(nombre, descripcion) VALUES
 INSERT INTO configuracion (nombre, valor, descripcion) VALUES
 ('IVA','15', 'Consiste en el recargo del 15% al monto del precio final determinado por el vendedor');
 DESCRIBE configuracion;
+
+
+-- INSERTAR DATOS CATEGORIAS --
+INSERT INTO categoria (nombre, descripcion) VALUES
+('Entradas', 'Pequeños platillos para abrir el apetito'),
+('Sopas', 'Caldos tradicionales chinos como Sopa Wonton'),
+('Arroz y Fideos', 'Platos Principales a base de arroz frito y fideos salteados'),
+('Carnes', 'Preparaciones de cerdo, res, pollo y pato con salsas típicas'),
+('Mariscos', 'Camarones, calamares y pescados salteados al Wok con vegetales frescos y condimentos orientales'),
+('Vegetariano', 'Opciones elaboradas solo con verduras, tofu y setas, ideales para quienes prefieren una alimentación sin carne.'),
+('Bebidas', 'Tés chinos calientes, jugos naturales y bebidas tradicionales como el té de jazmín o el té de burbujas'),
+('Postres', 'Dulces orientales como el pastel de luna, bolas de sésamo fritas y helado de té verde');
