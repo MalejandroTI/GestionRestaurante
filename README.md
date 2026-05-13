@@ -38,7 +38,9 @@ En este repositorio se encontrará la documentación generada durante el desarro
 ## Distribución del proyecto
 
 ```
-docs/        -> Diagramas y documentación
+documentos/        -> Diagramas y documentación
+Java/        -> Java
+SQL/        -> Script sql
 ```
 
 ## Enlaces de acceso
