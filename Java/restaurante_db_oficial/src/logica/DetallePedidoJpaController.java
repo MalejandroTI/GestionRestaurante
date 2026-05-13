@@ -10,7 +10,6 @@ import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import Clases.Pedido;
 import Clases.Producto;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -37,21 +36,12 @@ public class DetallePedidoJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido idPedido = detallePedido.getIdPedido();
-            if (idPedido != null) {
-                idPedido = em.getReference(idPedido.getClass(), idPedido.getIdPedido());
-                detallePedido.setIdPedido(idPedido);
-            }
             Producto idProducto = detallePedido.getIdProducto();
             if (idProducto != null) {
                 idProducto = em.getReference(idProducto.getClass(), idProducto.getIdProducto());
                 detallePedido.setIdProducto(idProducto);
             }
             em.persist(detallePedido);
-            if (idPedido != null) {
-                idPedido.getDetallePedidoCollection().add(detallePedido);
-                idPedido = em.merge(idPedido);
-            }
             if (idProducto != null) {
                 idProducto.getDetallePedidoCollection().add(detallePedido);
                 idProducto = em.merge(idProducto);
@@ -70,27 +60,13 @@ public class DetallePedidoJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             DetallePedido persistentDetallePedido = em.find(DetallePedido.class, detallePedido.getIdDetalle());
-            Pedido idPedidoOld = persistentDetallePedido.getIdPedido();
-            Pedido idPedidoNew = detallePedido.getIdPedido();
             Producto idProductoOld = persistentDetallePedido.getIdProducto();
             Producto idProductoNew = detallePedido.getIdProducto();
-            if (idPedidoNew != null) {
-                idPedidoNew = em.getReference(idPedidoNew.getClass(), idPedidoNew.getIdPedido());
-                detallePedido.setIdPedido(idPedidoNew);
-            }
             if (idProductoNew != null) {
                 idProductoNew = em.getReference(idProductoNew.getClass(), idProductoNew.getIdProducto());
                 detallePedido.setIdProducto(idProductoNew);
             }
             detallePedido = em.merge(detallePedido);
-            if (idPedidoOld != null && !idPedidoOld.equals(idPedidoNew)) {
-                idPedidoOld.getDetallePedidoCollection().remove(detallePedido);
-                idPedidoOld = em.merge(idPedidoOld);
-            }
-            if (idPedidoNew != null && !idPedidoNew.equals(idPedidoOld)) {
-                idPedidoNew.getDetallePedidoCollection().add(detallePedido);
-                idPedidoNew = em.merge(idPedidoNew);
-            }
             if (idProductoOld != null && !idProductoOld.equals(idProductoNew)) {
                 idProductoOld.getDetallePedidoCollection().remove(detallePedido);
                 idProductoOld = em.merge(idProductoOld);
@@ -127,11 +103,6 @@ public class DetallePedidoJpaController implements Serializable {
                 detallePedido.getIdDetalle();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The detallePedido with id " + id + " no longer exists.", enfe);
-            }
-            Pedido idPedido = detallePedido.getIdPedido();
-            if (idPedido != null) {
-                idPedido.getDetallePedidoCollection().remove(detallePedido);
-                idPedido = em.merge(idPedido);
             }
             Producto idProducto = detallePedido.getIdProducto();
             if (idProducto != null) {

@@ -10,13 +10,10 @@ import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import Clases.Pedido;
 import Clases.Usuario;
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import logica.exceptions.IllegalOrphanException;
 import logica.exceptions.NonexistentEntityException;
 
 /**
@@ -34,40 +31,17 @@ public class FacturaJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(Factura factura) throws IllegalOrphanException {
-        List<String> illegalOrphanMessages = null;
-        Pedido idPedidoOrphanCheck = factura.getIdPedido();
-        if (idPedidoOrphanCheck != null) {
-            Factura oldFacturaOfIdPedido = idPedidoOrphanCheck.getFactura();
-            if (oldFacturaOfIdPedido != null) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
-                }
-                illegalOrphanMessages.add("The Pedido " + idPedidoOrphanCheck + " already has an item of type Factura whose idPedido column cannot be null. Please make another selection for the idPedido field.");
-            }
-        }
-        if (illegalOrphanMessages != null) {
-            throw new IllegalOrphanException(illegalOrphanMessages);
-        }
+    public void create(Factura factura) {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido idPedido = factura.getIdPedido();
-            if (idPedido != null) {
-                idPedido = em.getReference(idPedido.getClass(), idPedido.getIdPedido());
-                factura.setIdPedido(idPedido);
-            }
             Usuario idUsuario = factura.getIdUsuario();
             if (idUsuario != null) {
                 idUsuario = em.getReference(idUsuario.getClass(), idUsuario.getIdUsuario());
                 factura.setIdUsuario(idUsuario);
             }
             em.persist(factura);
-            if (idPedido != null) {
-                idPedido.setFactura(factura);
-                idPedido = em.merge(idPedido);
-            }
             if (idUsuario != null) {
                 idUsuario.getFacturaCollection().add(factura);
                 idUsuario = em.merge(idUsuario);
@@ -80,46 +54,19 @@ public class FacturaJpaController implements Serializable {
         }
     }
 
-    public void edit(Factura factura) throws IllegalOrphanException, NonexistentEntityException, Exception {
+    public void edit(Factura factura) throws NonexistentEntityException, Exception {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
             Factura persistentFactura = em.find(Factura.class, factura.getIdFactura());
-            Pedido idPedidoOld = persistentFactura.getIdPedido();
-            Pedido idPedidoNew = factura.getIdPedido();
             Usuario idUsuarioOld = persistentFactura.getIdUsuario();
             Usuario idUsuarioNew = factura.getIdUsuario();
-            List<String> illegalOrphanMessages = null;
-            if (idPedidoNew != null && !idPedidoNew.equals(idPedidoOld)) {
-                Factura oldFacturaOfIdPedido = idPedidoNew.getFactura();
-                if (oldFacturaOfIdPedido != null) {
-                    if (illegalOrphanMessages == null) {
-                        illegalOrphanMessages = new ArrayList<String>();
-                    }
-                    illegalOrphanMessages.add("The Pedido " + idPedidoNew + " already has an item of type Factura whose idPedido column cannot be null. Please make another selection for the idPedido field.");
-                }
-            }
-            if (illegalOrphanMessages != null) {
-                throw new IllegalOrphanException(illegalOrphanMessages);
-            }
-            if (idPedidoNew != null) {
-                idPedidoNew = em.getReference(idPedidoNew.getClass(), idPedidoNew.getIdPedido());
-                factura.setIdPedido(idPedidoNew);
-            }
             if (idUsuarioNew != null) {
                 idUsuarioNew = em.getReference(idUsuarioNew.getClass(), idUsuarioNew.getIdUsuario());
                 factura.setIdUsuario(idUsuarioNew);
             }
             factura = em.merge(factura);
-            if (idPedidoOld != null && !idPedidoOld.equals(idPedidoNew)) {
-                idPedidoOld.setFactura(null);
-                idPedidoOld = em.merge(idPedidoOld);
-            }
-            if (idPedidoNew != null && !idPedidoNew.equals(idPedidoOld)) {
-                idPedidoNew.setFactura(factura);
-                idPedidoNew = em.merge(idPedidoNew);
-            }
             if (idUsuarioOld != null && !idUsuarioOld.equals(idUsuarioNew)) {
                 idUsuarioOld.getFacturaCollection().remove(factura);
                 idUsuarioOld = em.merge(idUsuarioOld);
@@ -156,11 +103,6 @@ public class FacturaJpaController implements Serializable {
                 factura.getIdFactura();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The factura with id " + id + " no longer exists.", enfe);
-            }
-            Pedido idPedido = factura.getIdPedido();
-            if (idPedido != null) {
-                idPedido.setFactura(null);
-                idPedido = em.merge(idPedido);
             }
             Usuario idUsuario = factura.getIdUsuario();
             if (idUsuario != null) {

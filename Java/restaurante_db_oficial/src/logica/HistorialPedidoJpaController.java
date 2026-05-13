@@ -10,7 +10,6 @@ import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import Clases.Pedido;
 import Clases.Usuario;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -37,21 +36,12 @@ public class HistorialPedidoJpaController implements Serializable {
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido idPedido = historialPedido.getIdPedido();
-            if (idPedido != null) {
-                idPedido = em.getReference(idPedido.getClass(), idPedido.getIdPedido());
-                historialPedido.setIdPedido(idPedido);
-            }
             Usuario idUsuario = historialPedido.getIdUsuario();
             if (idUsuario != null) {
                 idUsuario = em.getReference(idUsuario.getClass(), idUsuario.getIdUsuario());
                 historialPedido.setIdUsuario(idUsuario);
             }
             em.persist(historialPedido);
-            if (idPedido != null) {
-                idPedido.getHistorialPedidoCollection().add(historialPedido);
-                idPedido = em.merge(idPedido);
-            }
             if (idUsuario != null) {
                 idUsuario.getHistorialPedidoCollection().add(historialPedido);
                 idUsuario = em.merge(idUsuario);
@@ -70,27 +60,13 @@ public class HistorialPedidoJpaController implements Serializable {
             em = getEntityManager();
             em.getTransaction().begin();
             HistorialPedido persistentHistorialPedido = em.find(HistorialPedido.class, historialPedido.getIdHistorial());
-            Pedido idPedidoOld = persistentHistorialPedido.getIdPedido();
-            Pedido idPedidoNew = historialPedido.getIdPedido();
             Usuario idUsuarioOld = persistentHistorialPedido.getIdUsuario();
             Usuario idUsuarioNew = historialPedido.getIdUsuario();
-            if (idPedidoNew != null) {
-                idPedidoNew = em.getReference(idPedidoNew.getClass(), idPedidoNew.getIdPedido());
-                historialPedido.setIdPedido(idPedidoNew);
-            }
             if (idUsuarioNew != null) {
                 idUsuarioNew = em.getReference(idUsuarioNew.getClass(), idUsuarioNew.getIdUsuario());
                 historialPedido.setIdUsuario(idUsuarioNew);
             }
             historialPedido = em.merge(historialPedido);
-            if (idPedidoOld != null && !idPedidoOld.equals(idPedidoNew)) {
-                idPedidoOld.getHistorialPedidoCollection().remove(historialPedido);
-                idPedidoOld = em.merge(idPedidoOld);
-            }
-            if (idPedidoNew != null && !idPedidoNew.equals(idPedidoOld)) {
-                idPedidoNew.getHistorialPedidoCollection().add(historialPedido);
-                idPedidoNew = em.merge(idPedidoNew);
-            }
             if (idUsuarioOld != null && !idUsuarioOld.equals(idUsuarioNew)) {
                 idUsuarioOld.getHistorialPedidoCollection().remove(historialPedido);
                 idUsuarioOld = em.merge(idUsuarioOld);
@@ -127,11 +103,6 @@ public class HistorialPedidoJpaController implements Serializable {
                 historialPedido.getIdHistorial();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The historialPedido with id " + id + " no longer exists.", enfe);
-            }
-            Pedido idPedido = historialPedido.getIdPedido();
-            if (idPedido != null) {
-                idPedido.getHistorialPedidoCollection().remove(historialPedido);
-                idPedido = em.merge(idPedido);
             }
             Usuario idUsuario = historialPedido.getIdUsuario();
             if (idUsuario != null) {

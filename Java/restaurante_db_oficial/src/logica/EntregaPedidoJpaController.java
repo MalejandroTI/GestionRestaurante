@@ -10,14 +10,11 @@ import javax.persistence.Query;
 import javax.persistence.EntityNotFoundException;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import Clases.Pedido;
 import Clases.Tarifa;
 import Clases.Usuario;
-import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import logica.exceptions.IllegalOrphanException;
 import logica.exceptions.NonexistentEntityException;
 
 /**
@@ -35,30 +32,11 @@ public class EntregaPedidoJpaController implements Serializable {
         return emf.createEntityManager();
     }
 
-    public void create(EntregaPedido entregaPedido) throws IllegalOrphanException {
-        List<String> illegalOrphanMessages = null;
-        Pedido idPedidoOrphanCheck = entregaPedido.getIdPedido();
-        if (idPedidoOrphanCheck != null) {
-            EntregaPedido oldEntregaPedidoOfIdPedido = idPedidoOrphanCheck.getEntregaPedido();
-            if (oldEntregaPedidoOfIdPedido != null) {
-                if (illegalOrphanMessages == null) {
-                    illegalOrphanMessages = new ArrayList<String>();
-                }
-                illegalOrphanMessages.add("The Pedido " + idPedidoOrphanCheck + " already has an item of type EntregaPedido whose idPedido column cannot be null. Please make another selection for the idPedido field.");
-            }
-        }
-        if (illegalOrphanMessages != null) {
-            throw new IllegalOrphanException(illegalOrphanMessages);
-        }
+    public void create(EntregaPedido entregaPedido) {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
-            Pedido idPedido = entregaPedido.getIdPedido();
-            if (idPedido != null) {
-                idPedido = em.getReference(idPedido.getClass(), idPedido.getIdPedido());
-                entregaPedido.setIdPedido(idPedido);
-            }
             Tarifa idTarifa = entregaPedido.getIdTarifa();
             if (idTarifa != null) {
                 idTarifa = em.getReference(idTarifa.getClass(), idTarifa.getIdTarifa());
@@ -70,10 +48,6 @@ public class EntregaPedidoJpaController implements Serializable {
                 entregaPedido.setIdUsuarioRepartidor(idUsuarioRepartidor);
             }
             em.persist(entregaPedido);
-            if (idPedido != null) {
-                idPedido.setEntregaPedido(entregaPedido);
-                idPedido = em.merge(idPedido);
-            }
             if (idTarifa != null) {
                 idTarifa.getEntregaPedidoCollection().add(entregaPedido);
                 idTarifa = em.merge(idTarifa);
@@ -90,35 +64,16 @@ public class EntregaPedidoJpaController implements Serializable {
         }
     }
 
-    public void edit(EntregaPedido entregaPedido) throws IllegalOrphanException, NonexistentEntityException, Exception {
+    public void edit(EntregaPedido entregaPedido) throws NonexistentEntityException, Exception {
         EntityManager em = null;
         try {
             em = getEntityManager();
             em.getTransaction().begin();
             EntregaPedido persistentEntregaPedido = em.find(EntregaPedido.class, entregaPedido.getIdEntrega());
-            Pedido idPedidoOld = persistentEntregaPedido.getIdPedido();
-            Pedido idPedidoNew = entregaPedido.getIdPedido();
             Tarifa idTarifaOld = persistentEntregaPedido.getIdTarifa();
             Tarifa idTarifaNew = entregaPedido.getIdTarifa();
             Usuario idUsuarioRepartidorOld = persistentEntregaPedido.getIdUsuarioRepartidor();
             Usuario idUsuarioRepartidorNew = entregaPedido.getIdUsuarioRepartidor();
-            List<String> illegalOrphanMessages = null;
-            if (idPedidoNew != null && !idPedidoNew.equals(idPedidoOld)) {
-                EntregaPedido oldEntregaPedidoOfIdPedido = idPedidoNew.getEntregaPedido();
-                if (oldEntregaPedidoOfIdPedido != null) {
-                    if (illegalOrphanMessages == null) {
-                        illegalOrphanMessages = new ArrayList<String>();
-                    }
-                    illegalOrphanMessages.add("The Pedido " + idPedidoNew + " already has an item of type EntregaPedido whose idPedido column cannot be null. Please make another selection for the idPedido field.");
-                }
-            }
-            if (illegalOrphanMessages != null) {
-                throw new IllegalOrphanException(illegalOrphanMessages);
-            }
-            if (idPedidoNew != null) {
-                idPedidoNew = em.getReference(idPedidoNew.getClass(), idPedidoNew.getIdPedido());
-                entregaPedido.setIdPedido(idPedidoNew);
-            }
             if (idTarifaNew != null) {
                 idTarifaNew = em.getReference(idTarifaNew.getClass(), idTarifaNew.getIdTarifa());
                 entregaPedido.setIdTarifa(idTarifaNew);
@@ -128,14 +83,6 @@ public class EntregaPedidoJpaController implements Serializable {
                 entregaPedido.setIdUsuarioRepartidor(idUsuarioRepartidorNew);
             }
             entregaPedido = em.merge(entregaPedido);
-            if (idPedidoOld != null && !idPedidoOld.equals(idPedidoNew)) {
-                idPedidoOld.setEntregaPedido(null);
-                idPedidoOld = em.merge(idPedidoOld);
-            }
-            if (idPedidoNew != null && !idPedidoNew.equals(idPedidoOld)) {
-                idPedidoNew.setEntregaPedido(entregaPedido);
-                idPedidoNew = em.merge(idPedidoNew);
-            }
             if (idTarifaOld != null && !idTarifaOld.equals(idTarifaNew)) {
                 idTarifaOld.getEntregaPedidoCollection().remove(entregaPedido);
                 idTarifaOld = em.merge(idTarifaOld);
@@ -180,11 +127,6 @@ public class EntregaPedidoJpaController implements Serializable {
                 entregaPedido.getIdEntrega();
             } catch (EntityNotFoundException enfe) {
                 throw new NonexistentEntityException("The entregaPedido with id " + id + " no longer exists.", enfe);
-            }
-            Pedido idPedido = entregaPedido.getIdPedido();
-            if (idPedido != null) {
-                idPedido.setEntregaPedido(null);
-                idPedido = em.merge(idPedido);
             }
             Tarifa idTarifa = entregaPedido.getIdTarifa();
             if (idTarifa != null) {

@@ -4,6 +4,8 @@
  */
 package Clases;
 
+import ClasesEnum.enums.EstadoPedido;
+import ClasesEnum.enums.TipoPedido;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -12,6 +14,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -41,68 +45,83 @@ import javax.persistence.TemporalType;
     @NamedQuery(name = "Pedido.findBySubtotal", query = "SELECT p FROM Pedido p WHERE p.subtotal = :subtotal"),
     @NamedQuery(name = "Pedido.findByImpuesto", query = "SELECT p FROM Pedido p WHERE p.impuesto = :impuesto"),
     @NamedQuery(name = "Pedido.findByTotal", query = "SELECT p FROM Pedido p WHERE p.total = :total")})
+
 public class Pedido implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "id_pedido")
     private Integer idPedido;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pedido", nullable = false)
+    private TipoPedido tipoPedido;
+
     @Basic(optional = false)
-    @Column(name = "tipo_pedido")
-    private String tipoPedido;
-    @Basic(optional = false)
-    @Column(name = "codigo")
+    @Column(name = "codigo", unique = true)
     private String codigo;
-    @Basic(optional = false)
-    @Column(name = "estado")
-    private String estado;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = false)
+    private EstadoPedido estado;
+
     @Basic(optional = false)
     @Column(name = "fecha_hora")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaHora;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+
     @Basic(optional = false)
     @Column(name = "subtotal")
     private BigDecimal subtotal;
+
     @Basic(optional = false)
     @Column(name = "impuesto")
     private BigDecimal impuesto;
+
     @Basic(optional = false)
     @Column(name = "total")
     private BigDecimal total;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idPedido")
+
+    @OneToOne(mappedBy = "idPedido", cascade = CascadeType.ALL)
     private EntregaPedido entregaPedido;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "idPedido")
+
+    @OneToMany(mappedBy = "idPedido", cascade = CascadeType.ALL)
     private Collection<HistorialPedido> historialPedidoCollection;
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "idPedido")
+
+    @OneToOne(mappedBy = "idPedido", cascade = CascadeType.ALL)
     private Factura factura;
+
     @OneToMany(mappedBy = "idPedido")
     private Collection<DetallePedido> detallePedidoCollection;
+
     @JoinColumn(name = "id_cliente", referencedColumnName = "id_cliente")
     @ManyToOne(optional = false)
     private Cliente idCliente;
+
     @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
     @ManyToOne(optional = false)
     private Usuario idUsuario;
 
-    public Pedido() {
+    // =========================
+    // GETTERS Y SETTERS CORRECTOS
+    // =========================
+    public TipoPedido getTipoPedido() {
+        return tipoPedido;
     }
 
-    public Pedido(Integer idPedido) {
-        this.idPedido = idPedido;
-    }
-
-    public Pedido(Integer idPedido, String tipoPedido, String codigo, String estado, Date fechaHora, BigDecimal subtotal, BigDecimal impuesto, BigDecimal total) {
-        this.idPedido = idPedido;
+    public void setTipoPedido(TipoPedido tipoPedido) {
         this.tipoPedido = tipoPedido;
-        this.codigo = codigo;
+    }
+
+    public EstadoPedido getEstado() {
+        return estado;
+    }
+
+    public void setEstado(EstadoPedido estado) {
         this.estado = estado;
-        this.fechaHora = fechaHora;
-        this.subtotal = subtotal;
-        this.impuesto = impuesto;
-        this.total = total;
     }
 
     public Integer getIdPedido() {
@@ -113,28 +132,12 @@ public class Pedido implements Serializable {
         this.idPedido = idPedido;
     }
 
-    public String getTipoPedido() {
-        return tipoPedido;
-    }
-
-    public void setTipoPedido(String tipoPedido) {
-        this.tipoPedido = tipoPedido;
-    }
-
     public String getCodigo() {
         return codigo;
     }
 
     public void setCodigo(String codigo) {
         this.codigo = codigo;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
     }
 
     public Date getFechaHora() {
@@ -167,38 +170,6 @@ public class Pedido implements Serializable {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
-    }
-
-    public EntregaPedido getEntregaPedido() {
-        return entregaPedido;
-    }
-
-    public void setEntregaPedido(EntregaPedido entregaPedido) {
-        this.entregaPedido = entregaPedido;
-    }
-
-    public Collection<HistorialPedido> getHistorialPedidoCollection() {
-        return historialPedidoCollection;
-    }
-
-    public void setHistorialPedidoCollection(Collection<HistorialPedido> historialPedidoCollection) {
-        this.historialPedidoCollection = historialPedidoCollection;
-    }
-
-    public Factura getFactura() {
-        return factura;
-    }
-
-    public void setFactura(Factura factura) {
-        this.factura = factura;
-    }
-
-    public Collection<DetallePedido> getDetallePedidoCollection() {
-        return detallePedidoCollection;
-    }
-
-    public void setDetallePedidoCollection(Collection<DetallePedido> detallePedidoCollection) {
-        this.detallePedidoCollection = detallePedidoCollection;
     }
 
     public Cliente getIdCliente() {
@@ -241,5 +212,5 @@ public class Pedido implements Serializable {
     public String toString() {
         return "Clases.Pedido[ idPedido=" + idPedido + " ]";
     }
-    
+
 }
