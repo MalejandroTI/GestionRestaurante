@@ -9,11 +9,15 @@ import ClasesEnum.enums.EstadoPedido;
 import ClasesEnum.enums.TipoPedido;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import logica.ConfiguracionJpaController;
 import logica.PedidoJpaController;
+import logica.TarifaJpaController;
 
 public class PedidoService {
 
@@ -28,11 +32,19 @@ public class PedidoService {
     // =====================================================
     // CREAR PEDIDO
     // =====================================================
-    public Pedido crearPedido(Pedido pedido,
+    // =====================================================
+// CREAR PEDIDO
+// =====================================================
+    public Pedido crearPedido(
+            Pedido pedido,
+            Collection<DetallePedido> detalles,
             EntregaPedido entrega,
             Usuario usuario,
             Cliente cliente) {
 
+        // =========================
+        // VALIDACIONES
+        // =========================
         if (pedido == null) {
             throw new IllegalArgumentException("Pedido requerido");
         }
@@ -41,30 +53,42 @@ public class PedidoService {
             throw new IllegalArgumentException("Tipo de pedido obligatorio");
         }
 
+        if (detalles == null || detalles.isEmpty()) {
+            throw new IllegalArgumentException("El pedido debe tener productos");
+        }
+
+        if (cliente == null) {
+            throw new IllegalArgumentException("Cliente obligatorio");
+        }
+
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario obligatorio");
+        }
+
         EntityManager em = emf.createEntityManager();
 
         try {
+
             em.getTransaction().begin();
 
             // =========================
-            // VALIDACIONES BASE
+            // RELACIONES
             // =========================
-            if (cliente == null) {
-                throw new IllegalArgumentException("Cliente obligatorio");
-            }
-
-            if (usuario == null) {
-                throw new IllegalArgumentException("Usuario obligatorio");
-            }
-
             pedido.setIdCliente(cliente);
             pedido.setIdUsuario(usuario);
 
             // =========================
-            // CÓDIGO
+            // GENERAR CÓDIGO
             // =========================
-            if (pedido.getCodigo() == null || pedido.getCodigo().isBlank()) {
-                pedido.setCodigo(generarCodigo(em, pedido.getTipoPedido().name()));
+            if (pedido.getCodigo() == null
+                    || pedido.getCodigo().isBlank()) {
+
+                pedido.setCodigo(
+                        generarCodigo(
+                                em,
+                                pedido.getTipoPedido().name()
+                        )
+                );
             }
 
             // =========================
@@ -74,33 +98,104 @@ public class PedidoService {
                 pedido.setEstado(EstadoPedido.PENDIENTE);
             }
 
+            // =========================
+            // FECHA
+            // =========================
             if (pedido.getFechaHora() == null) {
                 pedido.setFechaHora(new Date());
             }
 
             // =========================
-            // IMPORTES DEFAULT
+            // IMPORTES INICIALES
             // =========================
-            pedido.setSubtotal(
-                    pedido.getSubtotal() != null ? pedido.getSubtotal() : BigDecimal.ZERO
-            );
-
-            pedido.setImpuesto(
-                    pedido.getImpuesto() != null ? pedido.getImpuesto() : BigDecimal.ZERO
-            );
-
-            pedido.setTotal(
-                    pedido.getTotal() != null ? pedido.getTotal() : BigDecimal.ZERO
-            );
+            pedido.setSubtotal(BigDecimal.ZERO);
+            pedido.setImpuesto(BigDecimal.ZERO);
+            pedido.setTotal(BigDecimal.ZERO);
 
             // =========================
-            // PERSIST PEDIDO
+            // GUARDAR PEDIDO
             // =========================
             em.persist(pedido);
+
+            // importante para obtener ID
             em.flush();
 
             // =========================
-            // SOLO DELIVERY GENERA ENTREGA
+            // CREAR DETALLES
+            // =========================
+            BigDecimal subtotal = BigDecimal.ZERO;
+
+            for (DetallePedido d : detalles) {
+
+                if (d.getIdProducto() == null) {
+                    throw new IllegalArgumentException(
+                            "Producto requerido en detalle"
+                    );
+                }
+
+                if (d.getCantidad() == null
+                        || d.getCantidad() <= 0) {
+
+                    throw new IllegalArgumentException(
+                            "Cantidad inválida"
+                    );
+                }
+
+                // relacionar pedido
+                d.setIdPedido(pedido);
+
+                // precio actual producto
+                BigDecimal precio
+                        = d.getIdProducto().getPrecio();
+
+                d.setPrecioUnitario(precio);
+
+                // subtotal detalle
+                BigDecimal sub
+                        = precio.multiply(
+                                BigDecimal.valueOf(
+                                        d.getCantidad()
+                                )
+                        );
+
+                d.setSubtotal(sub);
+
+                // acumular subtotal general
+                subtotal = subtotal.add(sub);
+
+                // guardar detalle
+                em.persist(d);
+            }
+
+            // =========================
+            // CALCULAR TOTALES
+            // =========================
+            pedido.setSubtotal(subtotal);
+            ConfiguracionJpaController configuracionController
+                    = new ConfiguracionJpaController(emf);
+
+            Configuracion config
+                    = configuracionController.findConfiguracion(1);
+
+            BigDecimal ivaDecimal
+                    = config.getValor().divide(
+                            new BigDecimal("100")
+                    );
+
+            BigDecimal impuesto
+                    = subtotal.multiply(ivaDecimal);
+
+            pedido.setImpuesto(impuesto);
+
+            pedido.setTotal(
+                    subtotal.add(impuesto)
+            );
+
+            // actualizar pedido
+            em.merge(pedido);
+
+            // =========================
+            // SOLO DELIVERY
             // =========================
             if (pedido.getTipoPedido() == TipoPedido.DELIVERY) {
 
@@ -108,32 +203,74 @@ public class PedidoService {
                     throw new IllegalArgumentException("Delivery requiere entrega");
                 }
 
-                validarEntrega(entrega);
+                // 1. calcular tarifa primero (dato de negocio externo)
+                TarifaJpaController tarifaController = new TarifaJpaController(emf);
 
-                if (entrega.getCostoEnvio() == null && entrega.getIdTarifa() != null) {
-                    entrega.setCostoEnvio(entrega.getIdTarifa().getPrecio());
+                Tarifa tarifa = tarifaController.obtenerTarifaPorDistancia(
+                        entrega.getDistanciaKm()
+                );
+
+                if (tarifa == null) {
+                    throw new IllegalArgumentException("No existe tarifa para la distancia");
                 }
 
+                entrega.setIdTarifa(tarifa);
+                entrega.setCostoEnvio(tarifa.getPrecio());
+
+                // 2. ahora sí completar datos necesarios para validación
                 entrega.setIdPedido(pedido);
 
                 if (entrega.getFechaHoraSalida() == null) {
                     entrega.setFechaHoraSalida(new Date());
                 }
 
+                // 3. ahora validar (ya está completo)
+                validarEntrega(entrega);
+
+                // 4. persistir entrega
                 em.persist(entrega);
+               
+                em.merge(pedido);
             }
 
+            // =========================
+            // COMMIT
+            // =========================
             em.getTransaction().commit();
+
             return pedido;
 
         } catch (Exception e) {
-            em.getTransaction().rollback();
-            throw new RuntimeException("Error creando pedido: " + e.getMessage(), e);
+
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+
+            throw new RuntimeException(
+                    "Error creando pedido",
+                    e
+            );
 
         } finally {
             em.close();
         }
     }
+    
+    
+    //metodo para calcular el total + envio 
+    public BigDecimal calcularTotalCobrar(
+        Pedido pedido,
+        EntregaPedido entrega
+) {
+
+    BigDecimal total = pedido.getTotal();
+
+    if (entrega != null) {
+        total = total.add(entrega.getCostoEnvio());
+    }
+
+    return total;
+}
 
     // =====================================================
     // CONSULTA POR ID
@@ -145,22 +282,14 @@ public class PedidoService {
     // =====================================================
     // PEDIDOS POR USUARIO
     // =====================================================
-    public java.util.List<Pedido> obtenerPedidosPorUsuario(Usuario usuario) {
+    public Collection<EntregaPedido> obtenerEntregasPorRepartidor(Usuario repartidor) {
 
-        EntityManager em = emf.createEntityManager();
+        return repartidor.getEntregaPedidoCollection();
+    }
 
-        try {
-            TypedQuery<Pedido> q = em.createQuery(
-                    "SELECT p FROM Pedido p WHERE p.idUsuario = :usuario",
-                    Pedido.class
-            );
+    public List<Pedido> listaPedidos() {
 
-            q.setParameter("usuario", usuario);
-            return q.getResultList();
-
-        } finally {
-            em.close();
-        }
+        return pedidoController.findPedidoEntities();
     }
 
     // =====================================================
@@ -283,6 +412,8 @@ public class PedidoService {
     // =====================================================
     // GENERAR CÓDIGO
     // =====================================================
+    //HACERLO CON JPQL es mucho mejor, ya que hacerlo solamente con jpa, seria 
+    //cargar innesesariamente la memoria al traer todos los pedidos existentes
     private String generarCodigo(EntityManager em, String tipo) {
 
         String prefijo = "P-" + tipo.toUpperCase();
@@ -308,4 +439,5 @@ public class PedidoService {
 
         return String.format("%s-%03d", prefijo, num);
     }
+
 }

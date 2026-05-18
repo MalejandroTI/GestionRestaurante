@@ -33,6 +33,9 @@ import javax.persistence.Table;
     @NamedQuery(name = "Producto.findByPrecio", query = "SELECT p FROM Producto p WHERE p.precio = :precio")})
 public class Producto implements Serializable {
 
+    @OneToMany(mappedBy = "idProducto")
+    private Collection<DetalleFactura> detalleFacturaCollection;
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -120,6 +123,14 @@ public class Producto implements Serializable {
     @Override
     public String toString() {
         return "Clases.Producto[ idProducto=" + idProducto + " ]";
+    }
+
+    public Collection<DetalleFactura> getDetalleFacturaCollection() {
+        return detalleFacturaCollection;
+    }
+
+    public void setDetalleFacturaCollection(Collection<DetalleFactura> detalleFacturaCollection) {
+        this.detalleFacturaCollection = detalleFacturaCollection;
     }
     
 }

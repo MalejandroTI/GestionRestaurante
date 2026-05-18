@@ -11,7 +11,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import Clases.EntregaPedido;
 import Clases.Tarifa;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -24,9 +23,9 @@ import logica.exceptions.NonexistentEntityException;
  *
  * @author ASUS
  */
-public class TarifaJpaController implements Serializable {
+public class TarifaJpaController1 implements Serializable {
 
-    public TarifaJpaController(EntityManagerFactory emf) {
+    public TarifaJpaController1(EntityManagerFactory emf) {
         this.emf = emf;
     }
     private EntityManagerFactory emf = null;
@@ -200,25 +199,5 @@ public class TarifaJpaController implements Serializable {
             em.close();
         }
     }
-
-    public Tarifa obtenerTarifaPorDistancia(BigDecimal distancia) {
-
-        EntityManager em = getEntityManager();
-
-        try {
-
-            return em.createQuery(
-                    "SELECT t FROM Tarifa t "
-                    + "WHERE :distancia BETWEEN t.kmMin AND t.kmMax",
-                    Tarifa.class
-            )
-                    .setParameter("distancia", distancia)
-                    .setMaxResults(1)
-                    .getSingleResult();
-
-        } finally {
-            em.close();
-        }
-    }
-
+    
 }

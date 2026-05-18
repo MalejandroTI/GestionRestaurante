@@ -48,6 +48,13 @@ import javax.persistence.TemporalType;
 
 public class Pedido implements Serializable {
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pedido")
+    private TipoPedido tipoPedido;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado")
+    private EstadoPedido estado;
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -56,17 +63,9 @@ public class Pedido implements Serializable {
     @Column(name = "id_pedido")
     private Integer idPedido;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_pedido", nullable = false)
-    private TipoPedido tipoPedido;
-
     @Basic(optional = false)
     @Column(name = "codigo", unique = true)
     private String codigo;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false)
-    private EstadoPedido estado;
 
     @Basic(optional = false)
     @Column(name = "fecha_hora")
@@ -108,12 +107,7 @@ public class Pedido implements Serializable {
     // =========================
     // GETTERS Y SETTERS CORRECTOS
     // =========================
-    public TipoPedido getTipoPedido() {
-        return tipoPedido;
-    }
-
-    public void setTipoPedido(TipoPedido tipoPedido) {
-        this.tipoPedido = tipoPedido;
+    public Pedido() {
     }
 
     public EstadoPedido getEstado() {
@@ -122,6 +116,14 @@ public class Pedido implements Serializable {
 
     public void setEstado(EstadoPedido estado) {
         this.estado = estado;
+    }
+
+    public TipoPedido getTipoPedido() {
+        return tipoPedido;
+    }
+
+    public void setTipoPedido(TipoPedido tipoPedido) {
+        this.tipoPedido = tipoPedido;
     }
 
     public Integer getIdPedido() {
@@ -186,6 +188,42 @@ public class Pedido implements Serializable {
 
     public void setIdUsuario(Usuario idUsuario) {
         this.idUsuario = idUsuario;
+    }
+
+    public EntregaPedido getEntregaPedido() {
+        return entregaPedido;
+    }
+
+    public void setEntregaPedido(EntregaPedido entregaPedido) {
+        this.entregaPedido = entregaPedido;
+    }
+
+    public Collection<HistorialPedido> getHistorialPedidoCollection() {
+        return historialPedidoCollection;
+    }
+
+    public void setHistorialPedidoCollection(
+            Collection<HistorialPedido> historialPedidoCollection) {
+
+        this.historialPedidoCollection = historialPedidoCollection;
+    }
+
+    public Factura getFactura() {
+        return factura;
+    }
+
+    public void setFactura(Factura factura) {
+        this.factura = factura;
+    }
+
+    public Collection<DetallePedido> getDetallePedidoCollection() {
+        return detallePedidoCollection;
+    }
+
+    public void setDetallePedidoCollection(
+            Collection<DetallePedido> detallePedidoCollection) {
+
+        this.detallePedidoCollection = detallePedidoCollection;
     }
 
     @Override
