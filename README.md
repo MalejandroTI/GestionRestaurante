@@ -38,9 +38,10 @@ En este repositorio se encontrará la documentación generada durante el desarro
 ## Distribución del proyecto
 
 ```
-documentos/  -> Diagramas y documentación
-Java/        -> Java
-SQL/         -> Script sql
+documentos/          -> Diagramas y documentación
+FacturasRestaurante/ -> Pdfs de facturas creadas
+Java/                -> Java
+SQL/                 -> Script sql
 ```
 
 ## Enlaces de acceso
@@ -59,6 +60,16 @@ https://docs.google.com/document/d/1NKTvYlMP2FAsKn9u2wyFZ5k3rMAdXIpAu67a3sHOD6g/
 * Apache NetBeans IDE 17
 * Draw.io
 
+## Librerias
+
+* itext5-5.5.12
+* mysql-connector-j-8.0.32
+
 ## Estado del proyecto
 
 En desarrollo. Actualmente se encuentra en fase de análisis, modelado y estructura de base de datos.
+
+## Version 
+1.0.0
+
+## PROCESO DE DESARROLLO
