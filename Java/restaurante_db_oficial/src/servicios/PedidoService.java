@@ -4,6 +4,7 @@
  */
 package servicios;
 
+import ClasesTemporales.ResumenPedido;
 import Clases.*;
 import ClasesEnum.enums.EstadoPedido;
 import ClasesEnum.enums.TipoPedido;
@@ -229,7 +230,7 @@ public class PedidoService {
 
                 // 4. persistir entrega
                 em.persist(entrega);
-               
+
                 em.merge(pedido);
             }
 
@@ -255,28 +256,39 @@ public class PedidoService {
             em.close();
         }
     }
-    
-    
+
     //metodo para calcular el total + envio 
     public BigDecimal calcularTotalCobrar(
-        Pedido pedido,
-        EntregaPedido entrega
-) {
+            Pedido pedido,
+            EntregaPedido entrega
+    ) {
 
-    BigDecimal total = pedido.getTotal();
+        BigDecimal total = pedido.getTotal();
 
-    if (entrega != null) {
-        total = total.add(entrega.getCostoEnvio());
+        if (entrega != null) {
+            total = total.add(entrega.getCostoEnvio());
+        }
+
+        return total;
     }
 
-    return total;
-}
+    public Pedido buscarPedidoConDetalles(Integer id) {
+        return pedidoController.findPedidoConDetalles(id);
+    }
 
     // =====================================================
     // CONSULTA POR ID
     // =====================================================
     public Pedido verPedido(int idPedido) {
-        return pedidoController.findPedido(idPedido);
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            return em.find(Pedido.class, idPedido);
+
+        } finally {
+            em.close();
+        }
     }
 
     // =====================================================
@@ -440,4 +452,44 @@ public class PedidoService {
         return String.format("%s-%03d", prefijo, num);
     }
 
+    public ResumenPedido calcularResumen(
+            List<DetallePedido> detalles) {
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        for (DetallePedido d : detalles) {
+
+            subtotal = subtotal.add(
+                    d.getSubtotal()
+            );
+        }
+
+        ConfiguracionJpaController configuracionController
+                = new ConfiguracionJpaController(emf);
+
+        Configuracion config
+                = configuracionController.findConfiguracion(1);
+
+        BigDecimal ivaDecimal
+                = config.getValor().divide(
+                        new BigDecimal("100")
+                );
+
+        BigDecimal impuesto
+                = subtotal.multiply(ivaDecimal);
+
+        BigDecimal total
+                = subtotal.add(impuesto);
+
+        ResumenPedido resumen
+                = new ResumenPedido();
+
+        resumen.setSubtotal(subtotal);
+
+        resumen.setIva(impuesto);
+
+        resumen.setTotal(total);
+
+        return resumen;
+    }
 }

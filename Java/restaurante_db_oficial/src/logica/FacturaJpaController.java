@@ -14,6 +14,7 @@ import Clases.Usuario;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import logica.exceptions.NonexistentEntityException;
 
 /**
@@ -163,5 +164,28 @@ public class FacturaJpaController implements Serializable {
             em.close();
         }
     }
-    
+
+    public Factura findFacturaConDetalles(Integer id) {
+
+        EntityManager em = getEntityManager();
+
+        try {
+            TypedQuery<Factura> query = em.createQuery(
+                    "SELECT f FROM Factura f "
+                    + "LEFT JOIN FETCH f.detalleFacturaCollection df "
+                    + "LEFT JOIN FETCH f.idPedido "
+                    + "LEFT JOIN FETCH f.idUsuario "
+                    + "WHERE f.idFactura = :id",
+                    Factura.class
+            );
+
+            query.setParameter("id", id);
+
+            return query.getSingleResult();
+
+        } finally {
+            em.close();
+        }
+    }
+
 }

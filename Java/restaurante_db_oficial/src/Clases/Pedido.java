@@ -16,6 +16,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -93,9 +94,8 @@ public class Pedido implements Serializable {
     @OneToOne(mappedBy = "idPedido", cascade = CascadeType.ALL)
     private Factura factura;
 
-    @OneToMany(mappedBy = "idPedido")
+    @OneToMany(mappedBy = "idPedido", fetch = FetchType.EAGER)
     private Collection<DetallePedido> detallePedidoCollection;
-
     @JoinColumn(name = "id_cliente", referencedColumnName = "id_cliente")
     @ManyToOne(optional = false)
     private Cliente idCliente;

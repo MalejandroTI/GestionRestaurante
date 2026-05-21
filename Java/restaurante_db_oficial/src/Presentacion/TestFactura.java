@@ -6,42 +6,43 @@ package Presentacion;
 
 import Clases.Factura;
 import CreacionDocsPdf.PdfFacturaService;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import logica.FacturaJpaController;
 import servicios.FacturaService;
 
 public class TestFactura {
+public static void main(String[] args) {
 
-    public static void main(String[] args) {
+    EntityManagerFactory emf = Persistence
+            .createEntityManagerFactory(
+                    "restaurante_db_oficialPU"
+            );
 
-        EntityManagerFactory emf
-                = Persistence.createEntityManagerFactory(
-                        "restaurante_db_oficialPU"
-                );
+    EntityManager em = emf.createEntityManager();
 
-        /*FacturaService facturaService
-                = new FacturaService(emf);
+    try {
+        // buscar factura con ID 2
+        Factura factura = em.find(Factura.class, 2);
 
-        Factura factura
-                = facturaService.crearFactura(16);
-
-        System.out.println(
-                "Factura creada correctamente. ID: "
-                + factura.getIdFactura()
-        );*/
-        PdfFacturaService pdfFacturaService
-                = new PdfFacturaService();
-
-        FacturaJpaController facturaController
-                = new FacturaJpaController(emf);
-
-        Factura factura
-                = facturaController.findFactura(1);
-        try {
-            pdfFacturaService.generarPdf(factura);
-        } catch (Exception e) {
-
+        if (factura == null) {
+            System.out.println("Factura no encontrada");
+            return;
         }
+
+        // forzar lazy
+        factura.getDetalleFacturaCollection().size();
+        factura.getIdPedido().getIdCliente().getNombre();
+        factura.getIdUsuario().getNombre();
+
+        // generar PDF
+        PdfFacturaService pdfService = new PdfFacturaService();
+        pdfService.generarPdf(factura);
+
+    } finally {
+        em.close();
+        emf.close();
     }
+}
 }

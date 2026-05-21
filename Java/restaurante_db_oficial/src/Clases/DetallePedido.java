@@ -45,12 +45,12 @@ public class DetallePedido implements Serializable {
     private BigDecimal precioUnitario;
     @Column(name = "subtotal")
     private BigDecimal subtotal;
-    @JoinColumn(name = "id_pedido", referencedColumnName = "id_pedido")
-    @ManyToOne
-    private Pedido idPedido;
     @JoinColumn(name = "id_producto", referencedColumnName = "id_producto")
-    @ManyToOne
+    @ManyToOne(fetch = javax.persistence.FetchType.EAGER)
     private Producto idProducto;
+    @JoinColumn(name = "id_pedido", referencedColumnName = "id_pedido")
+    @ManyToOne(fetch = javax.persistence.FetchType.EAGER)
+    private Pedido idPedido;
 
     public DetallePedido() {
     }
@@ -131,5 +131,5 @@ public class DetallePedido implements Serializable {
     public String toString() {
         return "Clases.DetallePedido[ idDetalle=" + idDetalle + " ]";
     }
-    
+
 }

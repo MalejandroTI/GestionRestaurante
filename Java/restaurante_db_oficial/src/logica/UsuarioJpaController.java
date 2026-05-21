@@ -20,6 +20,7 @@ import Clases.Usuario;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import logica.exceptions.IllegalOrphanException;
 import logica.exceptions.NonexistentEntityException;
 
@@ -37,6 +38,26 @@ public class UsuarioJpaController implements Serializable {
     public EntityManager getEntityManager() {
         return emf.createEntityManager();
     }
+    
+    public List<Usuario> obtenerRepartidores() {
+
+    UsuarioJpaController usuarioController
+            = new UsuarioJpaController(emf);
+
+    List<Usuario> usuarios
+            = usuarioController.findUsuarioEntities();
+
+    return usuarios.stream()
+            .filter(u -> Boolean.TRUE.equals(u.getActivo()))
+            .filter(u -> u.getRolCollection()
+                    .stream()
+                    .anyMatch(r ->
+                            r.getNombre() != null
+                            && r.getNombre()
+                                    .equalsIgnoreCase("Repartidor")
+                    ))
+            .toList();
+}
 
     public void create(Usuario usuario) {
         if (usuario.getRolCollection() == null) {
@@ -134,6 +155,25 @@ public class UsuarioJpaController implements Serializable {
             if (em != null) {
                 em.close();
             }
+        }
+    }
+
+    //METODO QUE ME PERMITE REALIZAR BUSQUEDA POR CORREO 
+    public Usuario findUsuarioByCorreo(String correo) {
+        EntityManager em = getEntityManager();
+
+        try {
+            return em.createQuery(
+                    "SELECT u FROM Usuario u WHERE u.correo = :correo",
+                    Usuario.class
+            )
+                    .setParameter("correo", correo)
+                    .getSingleResult();
+
+        } catch (NoResultException e) {
+            return null;
+        } finally {
+            em.close();
         }
     }
 
@@ -401,5 +441,5 @@ public class UsuarioJpaController implements Serializable {
             em.close();
         }
     }
-    
+
 }

@@ -73,7 +73,20 @@ public class RolJpaController implements Serializable {
             }
         }
     }
-
+    
+    public Rol findRolByNombre(String nombre) {
+    EntityManager em = getEntityManager();
+    try {
+        return em.createQuery(
+                "SELECT r FROM Rol r WHERE r.nombre = :nombre", Rol.class)
+                .setParameter("nombre", nombre)
+                .getSingleResult();
+    } finally {
+        em.close();
+    }
+}
+    
+    
     public void edit(Rol rol) throws NonexistentEntityException, Exception {
         EntityManager em = null;
         try {

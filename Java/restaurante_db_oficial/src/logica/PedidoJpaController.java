@@ -15,6 +15,7 @@ import Clases.Usuario;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import logica.exceptions.NonexistentEntityException;
 
 /**
@@ -192,5 +193,29 @@ public class PedidoJpaController implements Serializable {
             em.close();
         }
     }
-    
+
+    public Pedido findPedidoConDetalles(Integer id) {
+
+        EntityManager em = getEntityManager();
+
+        try {
+            TypedQuery<Pedido> query = em.createQuery(
+                    "SELECT p FROM Pedido p "
+                    + "LEFT JOIN FETCH p.detallePedidoCollection dp "
+                    + "LEFT JOIN FETCH dp.idProducto "
+                    + "LEFT JOIN FETCH p.idCliente "
+                    + "LEFT JOIN FETCH p.idUsuario "
+                    + "WHERE p.idPedido = :id",
+                    Pedido.class
+            );
+
+            query.setParameter("id", id);
+
+            return query.getSingleResult();
+
+        } finally {
+            em.close();
+        }
+    }
+
 }

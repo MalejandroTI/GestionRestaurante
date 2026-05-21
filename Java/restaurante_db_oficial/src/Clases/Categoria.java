@@ -104,7 +104,7 @@ public class Categoria implements Serializable {
 
     @Override
     public String toString() {
-        return "Clases.Categoria[ idCategoria=" + idCategoria + " ]";
+        return nombre;
     }
     
 }
