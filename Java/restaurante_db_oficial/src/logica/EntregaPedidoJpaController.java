@@ -192,5 +192,25 @@ public class EntregaPedidoJpaController implements Serializable {
             em.close();
         }
     }
-    
+
+    public List<EntregaPedido> findByRepartidorEstado(Usuario rep, String estado) {
+
+        EntityManager em = getEntityManager();
+
+        try {
+            return em.createQuery(
+                    "SELECT e FROM EntregaPedido e "
+                    + "WHERE e.idUsuarioRepartidor = :rep "
+                    + "AND e.idPedido.estado = :estado",
+                    EntregaPedido.class
+            )
+                    .setParameter("rep", rep)
+                    .setParameter("estado", estado)
+                    .getResultList();
+
+        } finally {
+            em.close();
+        }
+    }
+
 }

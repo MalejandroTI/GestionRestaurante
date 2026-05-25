@@ -33,14 +33,14 @@ public class TestCrearPedidos {
         try {
 
             PedidoService pedidoService
-                    = new PedidoService(emf);
+                    = new PedidoService();
 
             // =====================================================
             // DATOS BASE
             // =====================================================
 
             Cliente cliente
-                    = em.find(Cliente.class, 1);
+                    = em.find(Cliente.class,3);
 
             Usuario cajero
                     = em.find(Usuario.class, 1);

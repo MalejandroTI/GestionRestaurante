@@ -11,26 +11,24 @@ import Clases.DetallePedido;
 import logica.DetalleFacturaJpaController;
 import logica.FacturaJpaController;
 import logica.PedidoJpaController;
-import javax.persistence.EntityManagerFactory;
+import utilJpa.JPAUtil;
 
 public class FacturaService {
 
-    private final EntityManagerFactory emf;
     private final FacturaJpaController facturaController;
+    private final PedidoJpaController pedidoController;
+    private final DetalleFacturaJpaController detalleFacturaController;
 
-    public FacturaService(EntityManagerFactory emf) {
-        this.emf = emf;
-        this.facturaController = new FacturaJpaController(emf);
+    public FacturaService() {
+        this.facturaController = new FacturaJpaController(JPAUtil.getEMF());
+        this.pedidoController = new PedidoJpaController(JPAUtil.getEMF());
+        this.detalleFacturaController = new DetalleFacturaJpaController(JPAUtil.getEMF());
+
     }
 
     public Factura crearFactura(Pedido pedidoInput) {
-
-        PedidoJpaController pedidoController =
-                new PedidoJpaController(emf);
-
-        // ✔ IMPORTANTE: traer pedido CON DETALLES
-        Pedido pedido =
-                pedidoController.findPedidoConDetalles(
+        Pedido pedido
+                = pedidoController.findPedidoConDetalles(
                         pedidoInput.getIdPedido()
                 );
 
@@ -49,9 +47,6 @@ public class FacturaService {
 
         facturaController.create(factura);
 
-        DetalleFacturaJpaController detalleFacturaController =
-                new DetalleFacturaJpaController(emf);
-
         for (DetallePedido detallePedido : pedido.getDetallePedidoCollection()) {
 
             DetalleFactura detalleFactura = new DetalleFactura();
@@ -69,8 +64,16 @@ public class FacturaService {
         return factura;
     }
 
-    // ✔ NOMBRE CORRECTO
     public Factura buscarFacturaConDetalles(Integer id) {
         return facturaController.findFacturaConDetalles(id);
     }
+
+    public Factura obtenerOCrearFactura(Pedido pedido) {
+        Factura factura = buscarFacturaConDetalles(pedido.getIdPedido());
+        if (factura != null) {
+            return factura;
+        }
+        return crearFactura(pedido);
+    }
+
 }

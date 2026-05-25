@@ -7,47 +7,31 @@ package FuncionalidadBotones;
 import Clases.Cliente;
 import java.awt.Component;
 import java.util.List;
-import java.util.stream.Collectors;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import logica.ClienteJpaController;
+import servicios.ClienteService;
 
 public class ListaClientesSeleccion extends javax.swing.JFrame {
 
-    private final EntityManagerFactory emf
-            = Persistence.createEntityManagerFactory("restaurante_db_oficialPU");
-
+    private final ClienteService clienteService;
     private final DefaultTableModel modelo;
-
     private List<Cliente> listaClientes;
-
     private List<Cliente> listaVisible;
-
     private final PanelPedidoNuevo panelPedido;
 
     public ListaClientesSeleccion(PanelPedidoNuevo panelPedido) {
-
         initComponents();
-
         this.panelPedido = panelPedido;
-
         modelo = new DefaultTableModel();
-
+        clienteService = new ClienteService();
         tablaClientes.setModel(modelo);
-
         configurarTabla();
-
         cargarClientes();
-
         tablaClientes.getColumn("Seleccionar")
                 .setCellRenderer(new ButtonRenderer());
-
         tablaClientes.getColumn("Seleccionar")
                 .setCellEditor(
                         new ButtonEditor(
@@ -69,11 +53,7 @@ public class ListaClientesSeleccion extends javax.swing.JFrame {
 
     private void cargarClientes() {
 
-        ClienteJpaController controller
-                = new ClienteJpaController(emf);
-
-        listaClientes = controller.findClienteEntities();
-
+        listaClientes = clienteService.obtenerClientes();
         mostrarTabla(listaClientes);
     }
 
@@ -98,18 +78,8 @@ public class ListaClientesSeleccion extends javax.swing.JFrame {
 
     private void buscar(String texto) {
 
-        String t = texto.toLowerCase();
-
-        List<Cliente> filtrados = listaClientes.stream()
-                .filter(c
-                        -> String.valueOf(c.getIdCliente()).contains(t)
-                || c.getNombre().toLowerCase().contains(t)
-                || c.getApellido().toLowerCase().contains(t)
-                || c.getCedula().contains(t)
-                || c.getCelular().contains(t)
-                )
-                .collect(Collectors.toList());
-
+        List<Cliente> filtrados
+                = clienteService.buscarClientes(texto);
         mostrarTabla(filtrados);
     }
 

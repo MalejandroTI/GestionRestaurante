@@ -65,6 +65,32 @@ public class PedidoJpaController implements Serializable {
         }
     }
 
+    public Pedido findPedidoByCodigo(String codigo) {
+
+    EntityManager em = getEntityManager();
+
+    try {
+        TypedQuery<Pedido> query = em.createQuery(
+                "SELECT p FROM Pedido p "
+                + "LEFT JOIN FETCH p.detallePedidoCollection dp "
+                + "LEFT JOIN FETCH dp.idProducto "
+                + "LEFT JOIN FETCH p.idCliente "
+                + "LEFT JOIN FETCH p.idUsuario "
+                + "WHERE p.codigo = :codigo",
+                Pedido.class
+        );
+
+        query.setParameter("codigo", codigo);
+
+        List<Pedido> result = query.getResultList();
+
+        return result.isEmpty() ? null : result.get(0);
+
+    } finally {
+        em.close();
+    }
+}
+
     public void edit(Pedido pedido) throws NonexistentEntityException, Exception {
         EntityManager em = null;
         try {

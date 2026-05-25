@@ -2,29 +2,30 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package PresentacionJFRAME;
+package FuncionalidadBotones;
 
+import Clases.Rol;
 import Clases.Usuario;
+import FuncionalidadBotones.AgregarCliente;
+import FuncionalidadBotones.ListaPedidosCajero;
 import FuncionalidadBotones.PanelPedidoNuevo;
+import PresentacionJFRAME.SelectorDeRol;
+import javax.persistence.EntityManagerFactory;
+import javax.swing.JFrame;
 
 /**
  *
  * @author ASUS
  */
-public class PanelCajero extends javax.swing.JFrame {
-
+public class PanelCajero extends JFrame {
+    private final Rol rolActual;
     private final Usuario usuarioActual;
 
-    /**
-     * Creates new form PanelCajero
-     *
-     * @param usuario
-     */
-    public PanelCajero(Usuario usuario) {
+    public PanelCajero(Usuario usuario, Rol rolActual) {
+        this.rolActual = rolActual;
+        this.usuarioActual = usuario;
 
         initComponents();
-
-        this.usuarioActual = usuario;
 
         NombreCliente.setText(usuario.getNombre());
     }
@@ -165,18 +166,14 @@ public class PanelCajero extends javax.swing.JFrame {
     }// </editor-fold>
 
     private void Cliente_NuevoActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+
+        new AgregarCliente().setVisible(true);
     }
 
     private void pedido_nuevoActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
-        PanelPedidoNuevo panel
-                = new PanelPedidoNuevo(usuarioActual);
-
-        panel.setLocationRelativeTo(null);
-
-        panel.setVisible(true);
-
+        PanelPedidoNuevo ventana = new PanelPedidoNuevo(usuarioActual,rolActual);
+        ventana.setLocationRelativeTo(null);
+        ventana.setVisible(true);
         this.dispose();
     }
 
@@ -185,7 +182,14 @@ public class PanelCajero extends javax.swing.JFrame {
     }
 
     private void ListarPedidosActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+
+        ListaPedidosCajero panel = new ListaPedidosCajero(
+                usuarioActual, this,rolActual
+        );
+
+        setContentPane(panel);
+        revalidate();
+        repaint();
     }
 
     private void regresar_CajeroActionPerformed(java.awt.event.ActionEvent evt) {
@@ -218,25 +222,11 @@ public class PanelCajero extends javax.swing.JFrame {
                 }
             }
 
-        } catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
 
             java.util.logging.Logger.getLogger(PanelCajero.class.getName())
                     .log(java.util.logging.Level.SEVERE, null, ex);
 
-        } catch (InstantiationException ex) {
-
-            java.util.logging.Logger.getLogger(PanelCajero.class.getName())
-                    .log(java.util.logging.Level.SEVERE, null, ex);
-
-        } catch (IllegalAccessException ex) {
-
-            java.util.logging.Logger.getLogger(PanelCajero.class.getName())
-                    .log(java.util.logging.Level.SEVERE, null, ex);
-
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-
-            java.util.logging.Logger.getLogger(PanelCajero.class.getName())
-                    .log(java.util.logging.Level.SEVERE, null, ex);
         }
 
         java.awt.EventQueue.invokeLater(() -> {

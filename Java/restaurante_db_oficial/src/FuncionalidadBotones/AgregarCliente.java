@@ -4,26 +4,21 @@
  */
 package FuncionalidadBotones;
 
-import Clases.Cliente;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.swing.JOptionPane;
-import logica.ClienteJpaController;
+import servicios.ClienteService;
 
 /**
  *
  * @author ASUS
  */
-public class AgregarCliente extends javax.swing.JFrame{
-    private final EntityManagerFactory emf
-            = Persistence.createEntityManagerFactory(
-                    "restaurante_db_oficialPU"
-            );
+public class AgregarCliente extends javax.swing.JFrame {
+
+    private final ClienteService clienteService;
 
     public AgregarCliente() {
 
+        this.clienteService = new ClienteService();
         initComponents();
-
         setLocationRelativeTo(null);
     }
 
@@ -98,25 +93,19 @@ public class AgregarCliente extends javax.swing.JFrame{
                                 .addGap(30, 30, 30)
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.LEADING)
-
                                         .addComponent(jLabel1)
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGroup(layout.createParallelGroup(
                                                         javax.swing.GroupLayout.Alignment.LEADING)
-
                                                         .addComponent(jLabel2)
                                                         .addComponent(jLabel3)
                                                         .addComponent(jLabel4)
                                                         .addComponent(jLabel5)
                                                         .addComponent(jLabel6))
-
                                                 .addGap(20, 20, 20)
-
                                                 .addGroup(layout.createParallelGroup(
                                                         javax.swing.GroupLayout.Alignment.LEADING,
                                                         false)
-
                                                         .addComponent(txtNombre)
                                                         .addComponent(txtApellido)
                                                         .addComponent(txtCedula)
@@ -125,7 +114,6 @@ public class AgregarCliente extends javax.swing.JFrame{
                                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                                 250,
                                                                 javax.swing.GroupLayout.PREFERRED_SIZE)))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(btnGuardar)
                                                 .addGap(20, 20, 20)
@@ -139,11 +127,8 @@ public class AgregarCliente extends javax.swing.JFrame{
                 )
                         .addGroup(layout.createSequentialGroup()
                                 .addGap(20, 20, 20)
-
                                 .addComponent(jLabel1)
-
                                 .addGap(30, 30, 30)
-
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel2)
@@ -151,9 +136,7 @@ public class AgregarCliente extends javax.swing.JFrame{
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(15, 15, 15)
-
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel3)
@@ -161,9 +144,7 @@ public class AgregarCliente extends javax.swing.JFrame{
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(15, 15, 15)
-
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel4)
@@ -171,9 +152,7 @@ public class AgregarCliente extends javax.swing.JFrame{
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(15, 15, 15)
-
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel5)
@@ -181,9 +160,7 @@ public class AgregarCliente extends javax.swing.JFrame{
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(15, 15, 15)
-
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel6)
@@ -191,14 +168,11 @@ public class AgregarCliente extends javax.swing.JFrame{
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(30, 30, 30)
-
                                 .addGroup(layout.createParallelGroup(
                                         javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(btnGuardar)
                                         .addComponent(btnCancelar))
-
                                 .addContainerGap(30, Short.MAX_VALUE))
         );
 
@@ -210,44 +184,13 @@ public class AgregarCliente extends javax.swing.JFrame{
 
         try {
 
-            if (txtNombre.getText().isBlank()
-                    || txtApellido.getText().isBlank()
-                    || txtCedula.getText().isBlank()) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Complete los campos obligatorios"
-                );
-
-                return;
-            }
-
-            Cliente cliente = new Cliente();
-
-            cliente.setNombre(
-                    txtNombre.getText()
-            );
-
-            cliente.setApellido(
-                    txtApellido.getText()
-            );
-
-            cliente.setCedula(
-                    txtCedula.getText()
-            );
-
-            cliente.setCelular(
-                    txtCelular.getText()
-            );
-
-            cliente.setCorreo(
+            clienteService.crearCliente(
+                    txtNombre.getText(),
+                    txtApellido.getText(),
+                    txtCedula.getText(),
+                    txtCelular.getText(),
                     txtCorreo.getText()
             );
-
-            ClienteJpaController controller
-                    = new ClienteJpaController(emf);
-
-            controller.create(cliente);
 
             JOptionPane.showMessageDialog(
                     this,
@@ -260,18 +203,9 @@ public class AgregarCliente extends javax.swing.JFrame{
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Error al guardar cliente:\n"
-                    + e.getMessage()
+                    e.getMessage()
             );
         }
-    }
-
-    public static void main(String args[]) {
-
-        java.awt.EventQueue.invokeLater(() -> {
-
-            new AgregarCliente().setVisible(true);
-        });
     }
 
     // Variables declaration

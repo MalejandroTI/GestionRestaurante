@@ -11,37 +11,32 @@ package FuncionalidadBotones;
 import Clases.Producto;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
-import logica.ProductoJpaController;
+import servicios.ProductoService;
 
 public class ListaProductosSeleccion extends javax.swing.JFrame {
 
-    private final EntityManagerFactory emf
-            = Persistence.createEntityManagerFactory("restaurante_db_oficialPU");
-
+    private final ProductoService productoService;
     private final DefaultTableModel modelo;
-
     private List<Producto> listaProductos;
-
     private List<Producto> listaVisible;
-
     private final PanelPedidoNuevo panelPedido;
 
-    public ListaProductosSeleccion(PanelPedidoNuevo panelPedido) {
+    public ListaProductosSeleccion(
+            PanelPedidoNuevo panelPedido
+    ) {
 
         initComponents();
 
         this.panelPedido = panelPedido;
+
+        productoService = new ProductoService();
 
         modelo = new DefaultTableModel();
 
@@ -74,10 +69,8 @@ public class ListaProductosSeleccion extends javax.swing.JFrame {
 
     private void cargarProductos() {
 
-        ProductoJpaController controller
-                = new ProductoJpaController(emf);
-
-        listaProductos = controller.findProductoEntities();
+        listaProductos
+                = productoService.obtenerProductos();
 
         mostrarTabla(listaProductos);
     }
@@ -102,18 +95,8 @@ public class ListaProductosSeleccion extends javax.swing.JFrame {
 
     private void buscar(String texto) {
 
-        String t = texto.toLowerCase();
-
-        List<Producto> filtrados = listaProductos.stream()
-                .filter(p
-                        -> String.valueOf(p.getIdProducto()).contains(t)
-                || p.getNombre().toLowerCase().contains(t)
-                || p.getIdCategoria()
-                        .getNombre()
-                        .toLowerCase()
-                        .contains(t)
-                )
-                .collect(Collectors.toList());
+        List<Producto> filtrados
+                = productoService.buscarProductos(texto);
 
         mostrarTabla(filtrados);
     }

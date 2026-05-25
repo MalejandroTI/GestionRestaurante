@@ -6,16 +6,13 @@ package FuncionalidadBotones;
 
 import Clases.Rol;
 import Clases.Usuario;
-import PresentacionJFRAME.PanelAdmin;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -27,19 +24,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
-
-import logica.UsuarioJpaController;
+import servicios.UsuarioService;
 
 public class ListaEmpleados extends JPanel {
 
-    private final EntityManagerFactory emf
-            = Persistence.createEntityManagerFactory("restaurante_db_oficialPU");
-
+    private final UsuarioService usuarioService;
     private final PanelAdmin panelAdmin;
-
     private List<Usuario> listaUsuarios;
     private List<Usuario> listaVisible;
-
     private final DefaultTableModel modelo;
 
     public ListaEmpleados(PanelAdmin panelAdmin) {
@@ -47,6 +39,8 @@ public class ListaEmpleados extends JPanel {
         this.panelAdmin = panelAdmin;
 
         initComponents();
+
+        usuarioService = new UsuarioService();
 
         modelo = new DefaultTableModel();
 
@@ -61,7 +55,10 @@ public class ListaEmpleados extends JPanel {
 
         tablaUsuarios.getColumn("Detalle")
                 .setCellEditor(
-                        new ButtonEditor(new JCheckBox(), tablaUsuarios)
+                        new ButtonEditor(
+                                new JCheckBox(),
+                                tablaUsuarios
+                        )
                 );
     }
 
@@ -81,10 +78,7 @@ public class ListaEmpleados extends JPanel {
 
     private void cargarUsuarios() {
 
-        UsuarioJpaController controller
-                = new UsuarioJpaController(emf);
-
-        listaUsuarios = controller.findUsuarioEntities();
+        listaUsuarios = usuarioService.obtenerUsuarios();
 
         mostrarTabla(listaUsuarios);
     }
@@ -119,26 +113,16 @@ public class ListaEmpleados extends JPanel {
 
     private void buscar(String texto) {
 
-        String t = texto.toLowerCase();
-
-        List<Usuario> filtrados = listaUsuarios.stream()
-                .filter(u
-                        -> String.valueOf(u.getIdUsuario()).contains(t)
-                || u.getNombre().toLowerCase().contains(t)
-                || u.getApellido().toLowerCase().contains(t)
-                || u.getCedula().contains(t)
-                || u.getCorreo().toLowerCase().contains(t)
-                )
-                .collect(Collectors.toList());
+        List<Usuario> filtrados
+                = usuarioService.buscarUsuarios(texto);
 
         mostrarTabla(filtrados);
     }
 
     private void filtrarPorActivo(boolean activo) {
 
-        List<Usuario> filtrados = listaUsuarios.stream()
-                .filter(u -> u.getActivo() == activo)
-                .collect(Collectors.toList());
+        List<Usuario> filtrados
+                = usuarioService.filtrarPorActivo(activo);
 
         mostrarTabla(filtrados);
     }
@@ -177,10 +161,9 @@ public class ListaEmpleados extends JPanel {
 
             button = new JButton("Ver");
 
-            button.addActionListener(e -> {
-
+            button.addActionListener((ActionEvent e) -> {
                 int row = table.convertRowIndexToModel(
-                        table.getSelectedRow()
+                        table.getEditingRow()
                 );
 
                 if (row < 0) {
@@ -192,8 +175,7 @@ public class ListaEmpleados extends JPanel {
                 JTextArea area = new JTextArea(
                         """
                         ===== DETALLE USUARIO =====
-                        
-                        ID: """ + u.getIdUsuario() + "\n"
+                            ID: """ + u.getIdUsuario() + "\n"
                         + "Nombre: " + u.getNombre() + "\n"
                         + "Apellido: " + u.getApellido() + "\n"
                         + "Cédula: " + u.getCedula() + "\n"
@@ -226,17 +208,12 @@ public class ListaEmpleados extends JPanel {
 
                     try {
 
-                        UsuarioJpaController controller
-                                = new UsuarioJpaController(emf);
-
-                        u.setActivo(!activo);
-
-                        controller.edit(u);
+                        usuarioService.cambiarEstadoUsuario(u);
 
                         JOptionPane.showMessageDialog(dialog,
                                 activo
-                                ? "Empleado despedido"
-                                : "Empleado recontratado");
+                                        ? "Empleado despedido"
+                                        : "Empleado recontratado");
 
                         dialog.dispose();
 
@@ -315,9 +292,8 @@ public class ListaEmpleados extends JPanel {
         btnTodos.setText("TODOS");
 
         btnTodos.addActionListener(evt -> {
-            mostrarTabla(listaUsuarios);
+            cargarUsuarios();
         });
-
         lblTitulo.setText("LISTA DE EMPLEADOS");
 
         btnRegresar.setText("REGRESAR");
@@ -394,7 +370,6 @@ public class ListaEmpleados extends JPanel {
     }
 
     // VARIABLES
-
     private javax.swing.JButton btnActivos;
     private javax.swing.JButton btnBuscarPorTexto;
     private javax.swing.JButton btnInactivos;

@@ -5,27 +5,18 @@
 package FuncionalidadBotones;
 
 import Clases.Rol;
-import Clases.Usuario;
-import PresentacionJFRAME.PanelAdmin;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
-
-import logica.RolJpaController;
-import logica.UsuarioJpaController;
+import servicios.RolService;
+import servicios.UsuarioService;
+import utilJpa.JPAUtil;
 
 /**
  *
@@ -33,22 +24,23 @@ import logica.UsuarioJpaController;
  */
 public class AgregarUsuario extends javax.swing.JPanel {
 
-    private final EntityManagerFactory emf
-            = Persistence.createEntityManagerFactory("restaurante_db_oficialPU");
+    private final RolService rolService;
+    private final UsuarioService usuarioService;
 
     private final PanelAdmin panelAdmin;
 
-    private Map<JCheckBox, Rol> mapaRoles = new HashMap<>();
+    private final Map<JCheckBox, Rol> mapaRoles = new HashMap<>();
 
     /**
      * Creates new form AgregarUsuario
+     *
+     * @param panelAdmin
      */
     public AgregarUsuario(PanelAdmin panelAdmin) {
-
+        rolService = new RolService();
+        usuarioService = new UsuarioService();
         initComponents();
-
         this.panelAdmin = panelAdmin;
-
         cargarRolesDinamicos();
     }
 
@@ -144,22 +136,17 @@ public class AgregarUsuario extends javax.swing.JPanel {
 
         layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
                                 layout.createSequentialGroup()
                                         .addContainerGap(500, Short.MAX_VALUE)
                                         .addComponent(btnRegresar)
                                         .addGap(20, 20, 20))
-
                         .addGroup(layout.createSequentialGroup()
                                 .addGap(21, 21, 21)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(63, 63, 63)
                                                 .addComponent(jLabel8))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel7)
                                                 .addGap(45, 45, 45)
@@ -167,7 +154,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel2)
                                                 .addGap(45, 45, 45)
@@ -175,7 +161,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel3)
                                                 .addGap(45, 45, 45)
@@ -183,7 +168,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel4)
                                                 .addGap(18, 18, 18)
@@ -191,7 +175,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel6)
                                                 .addGap(23, 23, 23)
@@ -199,7 +182,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel1)
                                                 .addGap(23, 23, 23)
@@ -207,7 +189,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel5)
                                                 .addGap(18, 18, 18)
@@ -215,7 +196,6 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         188,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel9)
                                                 .addGap(18, 18, 18)
@@ -223,166 +203,112 @@ public class AgregarUsuario extends javax.swing.JPanel {
                                                         javax.swing.GroupLayout.PREFERRED_SIZE,
                                                         javax.swing.GroupLayout.DEFAULT_SIZE,
                                                         javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(148, 148, 148)
                                                 .addComponent(jButton1)))
-
                                 .addContainerGap(40, Short.MAX_VALUE))
         );
 
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-
                         .addGroup(layout.createSequentialGroup()
-
                                 .addGap(20, 20, 20)
-
                                 .addComponent(btnRegresar)
-
                                 .addGap(20, 20, 20)
-
                                 .addComponent(jLabel8)
-
                                 .addGap(20, 20, 20)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel7)
                                         .addComponent(nombre,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(18, 18, 18)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel2)
                                         .addComponent(apellido,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(18, 18, 18)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel3)
                                         .addComponent(cedula,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(18, 18, 18)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel4)
                                         .addComponent(fecha,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(18, 18, 18)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel6)
                                         .addComponent(celular,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(18, 18, 18)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel1)
                                         .addComponent(correo,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(18, 18, 18)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel5)
                                         .addComponent(contrasena,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(25, 25, 25)
-
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(jLabel9)
                                         .addComponent(panelRoles,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE,
                                                 javax.swing.GroupLayout.DEFAULT_SIZE,
                                                 javax.swing.GroupLayout.PREFERRED_SIZE))
-
                                 .addGap(25, 25, 25)
-
                                 .addComponent(jButton1)
-
                                 .addContainerGap(30, Short.MAX_VALUE))
         );
     }// </editor-fold>
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void jButton1ActionPerformed(
+            java.awt.event.ActionEvent evt) {
 
         try {
-
-            Usuario nuevoUser = new Usuario();
-
-            nuevoUser.setNombre(nombre.getText());
-
-            nuevoUser.setApellido(apellido.getText());
-
-            nuevoUser.setCedula(cedula.getText());
-
-            nuevoUser.setCelular(celular.getText());
-
-            nuevoUser.setCorreo(correo.getText());
-
-            nuevoUser.setContrasena(contrasena.getText());
-
-            SimpleDateFormat sdf
-                    = new SimpleDateFormat("yyyy-MM-dd");
-
-            Date fechaNacimiento
-                    = sdf.parse(fecha.getText());
-
-            nuevoUser.setFechaNacimiento(fechaNacimiento);
-
             List<Rol> rolesSeleccionados = new ArrayList<>();
-
             for (Map.Entry<JCheckBox, Rol> entry : mapaRoles.entrySet()) {
-
                 if (entry.getKey().isSelected()) {
-
                     rolesSeleccionados.add(entry.getValue());
                 }
             }
-
-            nuevoUser.setRolCollection(rolesSeleccionados);
-
-            nuevoUser.setActivo(true);
-
-            UsuarioJpaController controladorUsuario
-                    = new UsuarioJpaController(emf);
-
-            controladorUsuario.create(nuevoUser);
-
-            JOptionPane.showMessageDialog(this,
-                    "Usuario creado correctamente");
-
+            usuarioService.crearUsuario(
+                    nombre.getText(),
+                    apellido.getText(),
+                    cedula.getText(),
+                    fecha.getText(),
+                    celular.getText(),
+                    correo.getText(),
+                    contrasena.getText(),
+                    rolesSeleccionados
+            );
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Usuario creado correctamente"
+            );
             limpiarCampos();
-
-        } catch (ParseException e) {
-
-            JOptionPane.showMessageDialog(this,
-                    "Formato de fecha inválido (yyyy-MM-dd)");
-
         } catch (Exception e) {
 
-            JOptionPane.showMessageDialog(this,
-                    "Error: " + e.getMessage());
+            JOptionPane.showMessageDialog(
+                    this,
+                    e.getMessage()
+            );
         }
     }
 
@@ -394,52 +320,30 @@ public class AgregarUsuario extends javax.swing.JPanel {
 
     private void cargarRolesDinamicos() {
 
-        RolJpaController rolController
-                = new RolJpaController(emf);
-
-        List<Rol> roles
-                = rolController.findRolEntities();
-
+        List<Rol> roles = rolService.obtenerRoles();
         panelRoles.setLayout(
                 new BoxLayout(panelRoles, BoxLayout.Y_AXIS));
-
         panelRoles.removeAll();
-
         mapaRoles.clear();
-
         for (Rol rol : roles) {
-
             JCheckBox check
                     = new JCheckBox(rol.getNombre());
-
             panelRoles.add(check);
-
             mapaRoles.put(check, rol);
         }
-
         panelRoles.revalidate();
-
         panelRoles.repaint();
     }
 
     private void limpiarCampos() {
-
         nombre.setText("");
-
         apellido.setText("");
-
         cedula.setText("");
-
         fecha.setText("");
-
         celular.setText("");
-
         correo.setText("");
-
         contrasena.setText("");
-
         for (JCheckBox check : mapaRoles.keySet()) {
-
             check.setSelected(false);
         }
     }

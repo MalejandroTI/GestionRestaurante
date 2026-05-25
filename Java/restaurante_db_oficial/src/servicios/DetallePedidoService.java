@@ -13,6 +13,7 @@ import Clases.Pedido;
 import Clases.Producto;
 import java.math.BigDecimal;
 import java.util.Collection;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import logica.DetallePedidoJpaController;
 
@@ -22,8 +23,8 @@ public class DetallePedidoService {
 
     public DetallePedidoService(EntityManagerFactory emf) {
 
-        this.detalleController =
-                new DetallePedidoJpaController(emf);
+        this.detalleController
+                = new DetallePedidoJpaController(emf);
     }
 
     // =========================================
@@ -56,8 +57,8 @@ public class DetallePedidoService {
 
         detalle.setPrecioUnitario(producto.getPrecio());
 
-        BigDecimal subtotal =
-                producto.getPrecio().multiply(
+        BigDecimal subtotal
+                = producto.getPrecio().multiply(
                         BigDecimal.valueOf(cantidad)
                 );
 
@@ -73,12 +74,13 @@ public class DetallePedidoService {
     // =========================================
     public Collection<DetallePedido> obtenerDetallesPorPedido(Pedido pedido) {
 
-    if (pedido == null) {
-        throw new IllegalArgumentException();
+        if (pedido == null) {
+            throw new IllegalArgumentException();
+        }
+
+        return pedido.getDetallePedidoCollection();
     }
 
-    return pedido.getDetallePedidoCollection();
-}
     // =========================================
     // CALCULAR SUBTOTAL
     // =========================================
@@ -102,5 +104,29 @@ public class DetallePedidoService {
             throws Exception {
 
         detalleController.destroy(idDetalle);
+    }
+
+    private BigDecimal procesarDetalles(EntityManager em,
+            Pedido pedido,
+            Collection<DetallePedido> detalles) {
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        for (DetallePedido d : detalles) {
+
+            d.setIdPedido(pedido);
+            d.setPrecioUnitario(d.getIdProducto().getPrecio());
+
+            BigDecimal sub = d.getPrecioUnitario()
+                    .multiply(BigDecimal.valueOf(d.getCantidad()));
+
+            d.setSubtotal(sub);
+
+            subtotal = subtotal.add(sub);
+
+            em.persist(d);
+        }
+
+        return subtotal;
     }
 }

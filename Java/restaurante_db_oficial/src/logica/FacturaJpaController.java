@@ -165,24 +165,15 @@ public class FacturaJpaController implements Serializable {
         }
     }
 
-    public Factura findFacturaConDetalles(Integer id) {
-
+    public Factura findFacturaConDetalles(Integer idPedido) {
         EntityManager em = getEntityManager();
-
         try {
-            TypedQuery<Factura> query = em.createQuery(
-                    "SELECT f FROM Factura f "
-                    + "LEFT JOIN FETCH f.detalleFacturaCollection df "
-                    + "LEFT JOIN FETCH f.idPedido "
-                    + "LEFT JOIN FETCH f.idUsuario "
-                    + "WHERE f.idFactura = :id",
-                    Factura.class
-            );
-
-            query.setParameter("id", id);
-
-            return query.getSingleResult();
-
+            List<Factura> resultado = em.createQuery(
+                    "SELECT f FROM Factura f LEFT JOIN FETCH f.detalleFacturaCollection "
+                    + "WHERE f.idPedido.idPedido = :idPedido", Factura.class)
+                    .setParameter("idPedido", idPedido)
+                    .getResultList();                    // nunca lanza excepción
+            return resultado.isEmpty() ? null : resultado.get(0);
         } finally {
             em.close();
         }

@@ -4,30 +4,23 @@
  */
 package FuncionalidadBotones;
 
-import logica.ProductoJpaController;
-import logica.CategoriaJpaController;
 
 import Clases.Categoria;
-import Clases.Producto;
-import PresentacionJFRAME.PanelAdmin;
-
-import java.math.BigDecimal;
+import servicios.ProductoService;
 import java.util.List;
-
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JOptionPane;
+import servicios.CategoriaService;
+import utilJpa.JPAUtil;
 
 public class AgregarProducto extends javax.swing.JPanel {
 
-    private final EntityManagerFactory emf
-            = Persistence.createEntityManagerFactory("restaurante_db_oficialPU");
 
-    private final ProductoJpaController productoControlador;
-    private final CategoriaJpaController categoriaControlador;
+    private final ProductoService productoService;
+    private final CategoriaService categoriaService;
     private final PanelAdmin panelAdmin;
 
     /**
@@ -41,10 +34,8 @@ public class AgregarProducto extends javax.swing.JPanel {
 
         this.panelAdmin = panelAdmin;
 
-        productoControlador = new ProductoJpaController(emf);
-
-        categoriaControlador = new CategoriaJpaController(emf);
-
+        productoService = new ProductoService();
+        categoriaService = new CategoriaService();
         cargarCategorias();
 
     }
@@ -154,7 +145,7 @@ public class AgregarProducto extends javax.swing.JPanel {
         try {
 
             List<Categoria> listaCategorias
-                    = categoriaControlador.findCategoriaEntities();
+                    = categoriaService.obtenerCategorias();
 
             DefaultComboBoxModel<Categoria> modelo
                     = new DefaultComboBoxModel<>();
@@ -168,67 +159,38 @@ public class AgregarProducto extends javax.swing.JPanel {
 
         } catch (Exception e) {
 
-            JOptionPane.showMessageDialog(this,
-                    "Error al cargar categorías:\n" + e.getMessage());
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Error al cargar categorías:\n"
+                    + e.getMessage()
+            );
         }
     }
 
-    private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {
-
-        if (txtNombre.getText().trim().isEmpty()) {
-
-            JOptionPane.showMessageDialog(this,
-                    "Ingrese el nombre del producto");
-
-            txtNombre.requestFocus();
-
-            return;
-        }
-
-        if (txtPrecio.getText().trim().isEmpty()) {
-
-            JOptionPane.showMessageDialog(this,
-                    "Ingrese el precio");
-
-            txtPrecio.requestFocus();
-
-            return;
-        }
+    private void btnGuardarActionPerformed(
+            java.awt.event.ActionEvent evt) {
 
         try {
 
-            String nombre = txtNombre.getText().trim();
+            productoService.crearProducto(
+                    txtNombre.getText(),
+                    txtPrecio.getText(),
+                    (Categoria) cbCategoria.getSelectedItem()
+            );
 
-            BigDecimal precio
-                    = new BigDecimal(txtPrecio.getText().trim());
-
-            Categoria categoriaSeleccionada
-                    = (Categoria) cbCategoria.getSelectedItem();
-
-            Producto producto = new Producto();
-
-            producto.setNombre(nombre);
-
-            producto.setPrecio(precio);
-
-            producto.setIdCategoria(categoriaSeleccionada);
-
-            productoControlador.create(producto);
-
-            JOptionPane.showMessageDialog(this,
-                    "Producto agregado correctamente");
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Producto agregado correctamente"
+            );
 
             limpiarCampos();
 
-        } catch (NumberFormatException e) {
-
-            JOptionPane.showMessageDialog(this,
-                    "El precio debe ser numérico");
-
         } catch (Exception e) {
 
-            JOptionPane.showMessageDialog(this,
-                    "Error al guardar:\n" + e.getMessage());
+            JOptionPane.showMessageDialog(
+                    this,
+                    e.getMessage()
+            );
         }
     }
 

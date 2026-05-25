@@ -19,15 +19,19 @@ import javax.persistence.TypedQuery;
 import logica.ConfiguracionJpaController;
 import logica.PedidoJpaController;
 import logica.TarifaJpaController;
+import utilJpa.JPAUtil;
 
 public class PedidoService {
 
-    private final EntityManagerFactory emf;
     private final PedidoJpaController pedidoController;
+    private final EntityManagerFactory emf;
+    private final ConfiguracionJpaController configuracionController;
 
-    public PedidoService(EntityManagerFactory emf) {
-        this.emf = emf;
+    public PedidoService() {
+        this.emf = JPAUtil.getEMF();
         this.pedidoController = new PedidoJpaController(emf);
+        this.configuracionController = new ConfiguracionJpaController(emf);
+
     }
 
     // =====================================================
@@ -65,9 +69,7 @@ public class PedidoService {
         if (usuario == null) {
             throw new IllegalArgumentException("Usuario obligatorio");
         }
-
         EntityManager em = emf.createEntityManager();
-
         try {
 
             em.getTransaction().begin();
@@ -172,8 +174,6 @@ public class PedidoService {
             // CALCULAR TOTALES
             // =========================
             pedido.setSubtotal(subtotal);
-            ConfiguracionJpaController configuracionController
-                    = new ConfiguracionJpaController(emf);
 
             Configuracion config
                     = configuracionController.findConfiguracion(1);
@@ -299,102 +299,230 @@ public class PedidoService {
         return repartidor.getEntregaPedidoCollection();
     }
 
-    public List<Pedido> listaPedidos() {
-
-        return pedidoController.findPedidoEntities();
-    }
-
     // =====================================================
     // CAMBIO DE ESTADO
     // =====================================================
-    public Pedido cambiarEstado(int idPedido,
-            EstadoPedido nuevoEstado,
-            Usuario usuario) {
-
+    // ══════════════════════════════════════════════════════════════════════
+// Reemplaza los dos métodos en PedidoService
+// ══════════════════════════════════════════════════════════════════════
+    public Pedido cambiarEstado(int idPedido, EstadoPedido nuevoEstado,
+            Usuario usuario, Rol rolActual) {
         EntityManager em = emf.createEntityManager();
-
         try {
             em.getTransaction().begin();
 
             Pedido pedido = em.find(Pedido.class, idPedido);
-
             if (pedido == null) {
-                throw new IllegalArgumentException("Pedido no existe");
+                throw new IllegalArgumentException("Pedido no encontrado.");
             }
 
             EstadoPedido actual = pedido.getEstado();
 
             if (actual == EstadoPedido.ENTREGADO || actual == EstadoPedido.CANCELADO) {
-                throw new IllegalStateException("Pedido finalizado");
+                throw new IllegalStateException(
+                        "El pedido ya está finalizado y no puede modificarse.");
             }
+
+            // CAMBIO 2: pasa rolActual.getNombre() en lugar de extraerlo del usuario
+            verificarPermisoPorRol(rolActual != null ? rolActual.getNombre() : "Desconocido",
+                    actual, nuevoEstado);
 
             if (!esTransicionValida(actual, nuevoEstado)) {
-                throw new IllegalStateException("Transición inválida");
+                throw new IllegalStateException(
+                        "Transición inválida: " + actual + " → " + nuevoEstado);
             }
 
-            // 1. actualizar pedido
             pedido.setEstado(nuevoEstado);
             em.merge(pedido);
 
-            // 2. crear historial (AQUÍ ES DONDE SE LLENA LA TABLA)
             HistorialPedido h = new HistorialPedido();
-
             h.setIdPedido(pedido);
             h.setIdUsuario(usuario);
-            h.setEstado(nuevoEstado);   // SOLO el estado actual
-            h.setFechaHora(new Date());
-
-            h.setObservacion(
-                    "Cambio de estado de " + actual + " a " + nuevoEstado
-            );
-
+            h.setEstado(nuevoEstado);
+            h.setFechaHora(new java.util.Date());
+            // CAMBIO 3: usa rolActual directamente en la observación
+            h.setObservacion("Cambio de estado: " + actual + " → " + nuevoEstado
+                    + " por " + usuario.getNombre()
+                    + " [" + (rolActual != null ? rolActual.getNombre() : "Sin rol") + "]");
             em.persist(h);
 
             em.getTransaction().commit();
             return pedido;
 
         } catch (Exception e) {
-
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
-
             throw new RuntimeException(e);
-
         } finally {
             em.close();
         }
     }
 
-    // =====================================================
-    // REGLAS DE NEGOCIO DE ESTADOS
-    // =====================================================
-    private boolean esTransicionValida(EstadoPedido actual,
+// CAMBIO 4: la firma de verificarPermisoPorRol ahora recibe String en lugar de Usuario
+    private void verificarPermisoPorRol(String rol, EstadoPedido actual, EstadoPedido nuevo) {
+        switch (rol) {
+            case "Cajero" -> {
+                boolean permitido = (actual == EstadoPedido.PENDIENTE)
+                        || (nuevo == EstadoPedido.CANCELADO)
+                        || (nuevo == EstadoPedido.ENTREGADO);
+                if (!permitido) {
+                    throw new IllegalStateException(
+                            "El cajero solo puede gestionar pedidos PENDIENTES "
+                            + "o cancelar/entregar cualquier pedido.");
+                }
+            }
+            case "Cocinero" -> {
+                boolean permitido = (actual == EstadoPedido.PENDIENTE
+                        && nuevo == EstadoPedido.EN_PREPARACION)
+                        || (actual == EstadoPedido.EN_PREPARACION
+                        && nuevo == EstadoPedido.LISTO);
+                if (!permitido) {
+                    throw new IllegalStateException(
+                            "El cocinero solo puede cambiar: "
+                            + "PENDIENTE → EN_PREPARACION o EN_PREPARACION → LISTO.");
+                }
+            }
+            case "Repartidor" -> {
+                boolean permitido = (actual == EstadoPedido.LISTO
+                        && nuevo == EstadoPedido.EN_RUTA)
+                        || (actual == EstadoPedido.EN_RUTA
+                        && nuevo == EstadoPedido.ENTREGADO);
+                if (!permitido) {
+                    throw new IllegalStateException(
+                            "El repartidor solo puede cambiar: "
+                            + "LISTO → EN_RUTA o EN_RUTA → ENTREGADO.");
+                }
+            }
+            case "Administrador" -> {
+                // Sin restricción de rol
+            }
+            default ->
+                throw new IllegalStateException(
+                        "Rol desconocido: " + rol + ". No tiene permisos.");
+        }
+    }
+
+    /**
+     * Verifica si el rol del usuario tiene permiso para realizar la transición
+     * solicitada.
+     *
+     * CAJERO → PENDIENTE, ENTREGADO, CANCELADO COCINERO → EN_PREPARACION, LISTO
+     * REPARTIDOR→ EN_RUTA, ENTREGADO
+     */
+    private void verificarPermisoPorRol(Usuario usuario,
+            EstadoPedido actual,
             EstadoPedido nuevo) {
 
-        switch (actual) {
+        String rol = obtenerNombreRol(usuario);
 
+        switch (rol) {
+
+            case "Cajero" -> {
+                // Cajero: puede mover desde PENDIENTE, y puede cancelar o marcar entregado
+                boolean permitido = (actual == EstadoPedido.PENDIENTE)
+                        || (nuevo == EstadoPedido.CANCELADO)
+                        || (nuevo == EstadoPedido.ENTREGADO);
+                if (!permitido) {
+                    throw new IllegalStateException(
+                            "El cajero solo puede gestionar pedidos PENDIENTES "
+                            + "o cancelar/entregar cualquier pedido.");
+                }
+            }
+
+            case "Cocinero" -> {
+                // Cocinero: solo puede avanzar PENDIENTE→EN_PREPARACION o EN_PREPARACION→LISTO
+                boolean permitido = (actual == EstadoPedido.PENDIENTE
+                        && nuevo == EstadoPedido.EN_PREPARACION)
+                        || (actual == EstadoPedido.EN_PREPARACION
+                        && nuevo == EstadoPedido.LISTO);
+                if (!permitido) {
+                    throw new IllegalStateException(
+                            "El cocinero solo puede cambiar: "
+                            + "PENDIENTE → EN_PREPARACION o EN_PREPARACION → LISTO.");
+                }
+            }
+
+            case "Repartidor" -> {
+                // Repartidor: solo puede avanzar LISTO→EN_RUTA o EN_RUTA→ENTREGADO
+                boolean permitido = (actual == EstadoPedido.LISTO
+                        && nuevo == EstadoPedido.EN_RUTA)
+                        || (actual == EstadoPedido.EN_RUTA
+                        && nuevo == EstadoPedido.ENTREGADO);
+                if (!permitido) {
+                    throw new IllegalStateException(
+                            "El repartidor solo puede cambiar: "
+                            + "LISTO → EN_RUTA o EN_RUTA → ENTREGADO.");
+                }
+            }
+
+            case "Administrador" -> {
+                // Administrador puede hacer cualquier transición válida — sin restricción de rol
+            }
+
+            default ->
+                throw new IllegalStateException(
+                        "Rol desconocido: " + rol + ". No tiene permisos para cambiar estados.");
+        }
+    }
+
+    /**
+     * Valida que la transición sea coherente con el flujo del negocio,
+     * independientemente del rol.
+     */
+    private boolean esTransicionValida(EstadoPedido actual, EstadoPedido nuevo) {
+        switch (actual) {
             case PENDIENTE:
                 return nuevo == EstadoPedido.EN_PREPARACION
                         || nuevo == EstadoPedido.CANCELADO;
-
             case EN_PREPARACION:
                 return nuevo == EstadoPedido.LISTO
                         || nuevo == EstadoPedido.CANCELADO;
-
             case LISTO:
                 return nuevo == EstadoPedido.EN_RUTA
                         || nuevo == EstadoPedido.CANCELADO;
-
             case EN_RUTA:
                 return nuevo == EstadoPedido.ENTREGADO
                         || nuevo == EstadoPedido.CANCELADO;
-
             default:
                 return false;
         }
     }
 
+    /**
+     * Extrae el nombre del primer rol del usuario. Si tiene múltiples roles,
+     * toma el primero de la colección.
+     */
+    private String obtenerNombreRol(Usuario usuario) {
+        if (usuario.getRolCollection() == null || usuario.getRolCollection().isEmpty()) {
+            return "Desconocido";
+        }
+        return usuario.getRolCollection().iterator().next().getNombre();
+    }
+
+    public List<DetallePedido> agregarOActualizarDetalle(
+            List<DetallePedido> carrito, Producto producto, int cantidad) {
+
+        for (DetallePedido d : carrito) {
+            if (d.getIdProducto().getIdProducto().equals(producto.getIdProducto())) {
+                d.setCantidad(d.getCantidad() + cantidad);
+                d.setSubtotal(d.getPrecioUnitario()
+                        .multiply(BigDecimal.valueOf(d.getCantidad())));
+                return carrito;
+            }
+        }
+        DetallePedido nuevo = new DetallePedido();
+        nuevo.setIdProducto(producto);
+        nuevo.setCantidad(cantidad);
+        nuevo.setPrecioUnitario(producto.getPrecio());
+        nuevo.setSubtotal(producto.getPrecio().multiply(BigDecimal.valueOf(cantidad)));
+        carrito.add(nuevo);
+        return carrito;
+    }
+
+    // =====================================================
+    // REGLAS DE NEGOCIO DE ESTADOS
+    // =====================================================
     // =====================================================
     // VALIDAR ENTREGA
     // =====================================================
@@ -492,4 +620,23 @@ public class PedidoService {
 
         return resumen;
     }
+
+    public Pedido buscarPorCodigo(String codigo) {
+        return pedidoController.findPedidoByCodigo(codigo);
+    }
+
+    public List<Pedido> listaPedidos() {
+        return pedidoController.findPedidoEntities();
+    }
+
+    public List<Pedido> buscarFiltrado(String estado, String tipo, String codigo) {
+        List<Pedido> pedidos = pedidoController.findPedidoEntities();
+        return pedidos.stream()
+                .filter(p -> estado == null || p.getEstado().name().equalsIgnoreCase(estado))
+                .filter(p -> tipo == null || p.getTipoPedido().name().equalsIgnoreCase(tipo))
+                .filter(p -> codigo == null || codigo.isBlank()
+                || p.getCodigo().toLowerCase().contains(codigo.toLowerCase()))
+                .toList();
+    }
+
 }
