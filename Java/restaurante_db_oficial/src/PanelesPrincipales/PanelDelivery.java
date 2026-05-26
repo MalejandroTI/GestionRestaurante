@@ -2,13 +2,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package FuncionalidadBotones;
+package PanelesPrincipales;
 
 import Clases.EntregaPedido;
 import Clases.Rol;
 import Clases.Usuario;
 import EstilosUI.EstilosUI;
+import FuncionalidadBotones.PanelPedidosDelivery;
+import FuncionalidadBotones.PanelPedidosHistorialRepartidor;
 import PresentacionJFRAME.LoginFrame;
+import PresentacionJFRAME.SelectorDeRol;
 import java.awt.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -233,7 +236,7 @@ public class PanelDelivery extends JFrame {
         List<EntregaPedido> pedidos
                 = entregaService.obtenerEntregados(usuario);
 
-        new PanelPedidosHistorial(pedidos, usuario).setVisible(true);
+        new PanelPedidosHistorialRepartidor(pedidos, usuario).setVisible(true);
     }
 
     private void cerrarSesion() {
@@ -251,7 +254,7 @@ public class PanelDelivery extends JFrame {
                 timerRefresco.stop();
             }
 
-            new LoginFrame().setVisible(true);
+            new SelectorDeRol(usuario).setVisible(true);
             dispose();
         }
     }

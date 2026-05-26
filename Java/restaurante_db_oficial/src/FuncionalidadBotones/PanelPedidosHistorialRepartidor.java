@@ -22,7 +22,7 @@ import servicios.EntregaService;
  * Historial de pedidos ENTREGADOS del repartidor. Solo lectura — no permite
  * acciones de modificación.
  */
-public class PanelPedidosHistorial extends JFrame {
+public class PanelPedidosHistorialRepartidor extends JFrame {
 
     // ── Dependencias ───────────────────────────────────────────────────────
     private List<EntregaPedido> listaVisible;
@@ -37,7 +37,7 @@ public class PanelPedidosHistorial extends JFrame {
     private JButton btnRegresar;
 
     // ══════════════════════════════════════════════════════════════════════
-    public PanelPedidosHistorial(List<EntregaPedido> pedidos, Usuario usuario) {
+    public PanelPedidosHistorialRepartidor(List<EntregaPedido> pedidos, Usuario usuario) {
         this.listaVisible = pedidos;
         this.usuario = usuario;
         this.entregaService = new EntregaService();

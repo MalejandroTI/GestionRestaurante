@@ -4,6 +4,7 @@
  */
 package FuncionalidadBotones;
 
+import PanelesPrincipales.PanelAdmin;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.swing.JOptionPane;

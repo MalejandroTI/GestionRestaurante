@@ -4,6 +4,7 @@
  */
 package FuncionalidadBotones;
 
+import PanelesPrincipales.PanelCajero;
 import Clases.Cliente;
 import Clases.DetallePedido;
 import Clases.EntregaPedido;

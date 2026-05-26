@@ -4,6 +4,7 @@
  */
 package FuncionalidadBotones;
 
+import PanelesPrincipales.PanelAdmin;
 import Clases.Rol;
 import Clases.Usuario;
 

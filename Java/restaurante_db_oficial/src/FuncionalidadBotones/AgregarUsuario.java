@@ -4,6 +4,7 @@
  */
 package FuncionalidadBotones;
 
+import PanelesPrincipales.PanelAdmin;
 import Clases.Rol;
 import java.util.ArrayList;
 import java.util.HashMap;

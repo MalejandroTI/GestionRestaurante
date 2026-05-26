@@ -2,10 +2,14 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package FuncionalidadBotones;
+package PanelesPrincipales;
 
 import Clases.Rol;
 import Clases.Usuario;
+import FuncionalidadBotones.AgregarCategoria;
+import FuncionalidadBotones.AgregarProducto;
+import FuncionalidadBotones.AgregarUsuario;
+import FuncionalidadBotones.ListaEmpleados;
 import PresentacionJFRAME.SelectorDeRol;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;

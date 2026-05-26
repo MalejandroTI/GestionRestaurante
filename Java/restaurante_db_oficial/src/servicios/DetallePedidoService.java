@@ -14,17 +14,17 @@ import Clases.Producto;
 import java.math.BigDecimal;
 import java.util.Collection;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import logica.DetallePedidoJpaController;
+import utilJpa.JPAUtil;
 
 public class DetallePedidoService {
 
     private final DetallePedidoJpaController detalleController;
 
-    public DetallePedidoService(EntityManagerFactory emf) {
+    public DetallePedidoService() {
 
         this.detalleController
-                = new DetallePedidoJpaController(emf);
+                = new DetallePedidoJpaController(JPAUtil.getEMF());
     }
 
     // =========================================

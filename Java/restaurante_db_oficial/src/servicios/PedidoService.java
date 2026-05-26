@@ -10,6 +10,7 @@ import ClasesEnum.enums.EstadoPedido;
 import ClasesEnum.enums.TipoPedido;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -34,12 +35,6 @@ public class PedidoService {
 
     }
 
-    // =====================================================
-    // CREAR PEDIDO
-    // =====================================================
-    // =====================================================
-// CREAR PEDIDO
-// =====================================================
     public Pedido crearPedido(
             Pedido pedido,
             Collection<DetallePedido> detalles,
@@ -47,9 +42,7 @@ public class PedidoService {
             Usuario usuario,
             Cliente cliente) {
 
-        // =========================
         // VALIDACIONES
-        // =========================
         if (pedido == null) {
             throw new IllegalArgumentException("Pedido requerido");
         }
@@ -74,15 +67,11 @@ public class PedidoService {
 
             em.getTransaction().begin();
 
-            // =========================
             // RELACIONES
-            // =========================
             pedido.setIdCliente(cliente);
             pedido.setIdUsuario(usuario);
 
-            // =========================
             // GENERAR CÓDIGO
-            // =========================
             if (pedido.getCodigo() == null
                     || pedido.getCodigo().isBlank()) {
 
@@ -94,38 +83,27 @@ public class PedidoService {
                 );
             }
 
-            // =========================
             // ESTADO INICIAL
-            // =========================
             if (pedido.getEstado() == null) {
                 pedido.setEstado(EstadoPedido.PENDIENTE);
             }
 
-            // =========================
             // FECHA
-            // =========================
             if (pedido.getFechaHora() == null) {
                 pedido.setFechaHora(new Date());
             }
 
-            // =========================
             // IMPORTES INICIALES
-            // =========================
             pedido.setSubtotal(BigDecimal.ZERO);
             pedido.setImpuesto(BigDecimal.ZERO);
             pedido.setTotal(BigDecimal.ZERO);
 
-            // =========================
             // GUARDAR PEDIDO
-            // =========================
             em.persist(pedido);
 
-            // importante para obtener ID
             em.flush();
 
-            // =========================
             // CREAR DETALLES
-            // =========================
             BigDecimal subtotal = BigDecimal.ZERO;
 
             for (DetallePedido d : detalles) {
@@ -195,9 +173,7 @@ public class PedidoService {
             // actualizar pedido
             em.merge(pedido);
 
-            // =========================
             // SOLO DELIVERY
-            // =========================
             if (pedido.getTipoPedido() == TipoPedido.DELIVERY) {
 
                 if (entrega == null) {
@@ -419,14 +395,31 @@ public class PedidoService {
         switch (rol) {
 
             case "Cajero" -> {
-                // Cajero: puede mover desde PENDIENTE, y puede cancelar o marcar entregado
-                boolean permitido = (actual == EstadoPedido.PENDIENTE)
-                        || (nuevo == EstadoPedido.CANCELADO)
-                        || (nuevo == EstadoPedido.ENTREGADO);
+
+                boolean permitido
+                        = // PENDIENTE → EN_PREPARACION
+                        (actual == EstadoPedido.PENDIENTE
+                        && nuevo == EstadoPedido.EN_PREPARACION)
+                        // LISTO → EN_RUTA
+                        || (actual == EstadoPedido.LISTO
+                        && nuevo == EstadoPedido.EN_RUTA)
+                        // LISTO → ENTREGADO
+                        || (actual == EstadoPedido.LISTO
+                        && nuevo == EstadoPedido.ENTREGADO)
+                        // Cancelar pedidos no finalizados
+                        || (nuevo == EstadoPedido.CANCELADO
+                        && actual != EstadoPedido.ENTREGADO
+                        && actual != EstadoPedido.CANCELADO);
+
                 if (!permitido) {
+
                     throw new IllegalStateException(
-                            "El cajero solo puede gestionar pedidos PENDIENTES "
-                            + "o cancelar/entregar cualquier pedido.");
+                            "El cajero solo puede:\n"
+                            + "PENDIENTE → EN_PREPARACION\n"
+                            + "LISTO → EN_RUTA\n"
+                            + "LISTO → ENTREGADO\n"
+                            + "o cancelar pedidos."
+                    );
                 }
             }
 
@@ -471,28 +464,25 @@ public class PedidoService {
      * independientemente del rol.
      */
     private boolean esTransicionValida(EstadoPedido actual, EstadoPedido nuevo) {
-        switch (actual) {
-            case PENDIENTE:
-                return nuevo == EstadoPedido.EN_PREPARACION
-                        || nuevo == EstadoPedido.CANCELADO;
-            case EN_PREPARACION:
-                return nuevo == EstadoPedido.LISTO
-                        || nuevo == EstadoPedido.CANCELADO;
-            case LISTO:
-                return nuevo == EstadoPedido.EN_RUTA
-                        || nuevo == EstadoPedido.CANCELADO;
-            case EN_RUTA:
-                return nuevo == EstadoPedido.ENTREGADO
-                        || nuevo == EstadoPedido.CANCELADO;
-            default:
-                return false;
-        }
+        return switch (actual) {
+            case PENDIENTE ->
+                nuevo == EstadoPedido.EN_PREPARACION
+                || nuevo == EstadoPedido.CANCELADO;
+            case EN_PREPARACION ->
+                nuevo == EstadoPedido.LISTO
+                || nuevo == EstadoPedido.CANCELADO;
+            case LISTO ->
+                nuevo == EstadoPedido.EN_RUTA
+                || nuevo == EstadoPedido.ENTREGADO
+                || nuevo == EstadoPedido.CANCELADO;
+            case EN_RUTA ->
+                nuevo == EstadoPedido.ENTREGADO
+                || nuevo == EstadoPedido.CANCELADO;
+            default ->
+                false;
+        };
     }
 
-    /**
-     * Extrae el nombre del primer rol del usuario. Si tiene múltiples roles,
-     * toma el primero de la colección.
-     */
     private String obtenerNombreRol(Usuario usuario) {
         if (usuario.getRolCollection() == null || usuario.getRolCollection().isEmpty()) {
             return "Desconocido";
@@ -520,12 +510,6 @@ public class PedidoService {
         return carrito;
     }
 
-    // =====================================================
-    // REGLAS DE NEGOCIO DE ESTADOS
-    // =====================================================
-    // =====================================================
-    // VALIDAR ENTREGA
-    // =====================================================
     private void validarEntrega(EntregaPedido e) {
 
         if (e.getDireccionEntrega() == null || e.getDireccionEntrega().isBlank()) {
@@ -549,9 +533,7 @@ public class PedidoService {
         }
     }
 
-    // =====================================================
     // GENERAR CÓDIGO
-    // =====================================================
     //HACERLO CON JPQL es mucho mejor, ya que hacerlo solamente con jpa, seria 
     //cargar innesesariamente la memoria al traer todos los pedidos existentes
     private String generarCodigo(EntityManager em, String tipo) {
@@ -629,6 +611,15 @@ public class PedidoService {
         return pedidoController.findPedidoEntities();
     }
 
+    public List<Pedido> listarPedidosCocina() {
+        List<Pedido> pedidos = new ArrayList<>();
+
+        pedidos.addAll(listarPedidosPorEstado(EstadoPedido.EN_PREPARACION));
+        pedidos.addAll(listarPedidosPorEstado(EstadoPedido.LISTO));
+
+        return pedidos;
+    }
+
     public List<Pedido> buscarFiltrado(String estado, String tipo, String codigo) {
         List<Pedido> pedidos = pedidoController.findPedidoEntities();
         return pedidos.stream()
@@ -639,4 +630,58 @@ public class PedidoService {
                 .toList();
     }
 
+    public List<Pedido> listarPedidosPorEstado(EstadoPedido estado) {
+
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            TypedQuery<Pedido> query = em.createQuery(
+                    "SELECT p FROM Pedido p WHERE p.estado = :estado",
+                    Pedido.class
+            );
+
+            query.setParameter("estado", estado);
+
+            return query.getResultList();
+
+        } finally {
+            em.close();
+        }
+    }
+
+    public EstadoPedido[] obtenerEstadosPermitidos(
+            Pedido pedido,
+            Rol rolActual
+    ) {
+
+        if (pedido == null || rolActual == null) {
+            return new EstadoPedido[0];
+        }
+
+        List<EstadoPedido> permitidos = new ArrayList<>();
+
+        EstadoPedido actual = pedido.getEstado();
+
+        for (EstadoPedido estado : EstadoPedido.values()) {
+
+            try {
+
+                verificarPermisoPorRol(
+                        rolActual.getNombre(),
+                        actual,
+                        estado
+                );
+
+                if (esTransicionValida(actual, estado)) {
+                    permitidos.add(estado);
+                }
+
+            } catch (Exception e) {
+                // Ignorar estados no válidos
+            }
+        }
+
+        return permitidos.toArray(new EstadoPedido[0]);
+    }
 }

@@ -10,8 +10,7 @@ package PresentacionJFRAMEBocetos;
  */
 import Clases.Rol;
 import Clases.Usuario;
-import FuncionalidadBotones.PanelCajero;
-import PresentacionJFRAME.PanelCocineroBoceto;
+import PanelesPrincipales.PanelCajero;
 import javax.swing.*;
 
 public class SelectorDeRolBoceto extends javax.swing.JFrame {

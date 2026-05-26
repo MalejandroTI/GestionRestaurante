@@ -4,6 +4,7 @@
  */
 package FuncionalidadBotones;
 
+import PanelesPrincipales.PanelCajero;
 import Clases.Pedido;
 import Clases.Rol;
 import Clases.Usuario;
@@ -217,44 +218,82 @@ public class ListaPedidosCajero extends JPanel {
      * y llama a PedidoService.cambiarEstado().
      */
     private void accionCambiarEstado() {
-        Pedido pedido = obtenerPedidoSeleccionado();
-        if (pedido == null) return;
 
-        // Estados permitidos según rol — el servicio los validará también,
-        // pero mostramos solo los relevantes para no confundir al usuario
-        EstadoPedido[] opciones = estadosPermitidosPorRol();
-        if (opciones.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Tu rol no tiene permisos para cambiar estados.",
-                    "Sin permisos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+    Pedido pedido = obtenerPedidoSeleccionado();
 
-        EstadoPedido seleccionado = (EstadoPedido) JOptionPane.showInputDialog(
+    if (pedido == null) {
+        return;
+    }
+
+    // El service decide qué opciones son válidas
+    EstadoPedido[] opciones =
+            servicePedido.obtenerEstadosPermitidos(
+                    pedido,
+                    rolActual
+            );
+
+    if (opciones.length == 0) {
+
+        JOptionPane.showMessageDialog(
                 this,
-                "Estado actual: " + pedido.getEstado()
-                + "\nSelecciona el nuevo estado:",
-                "Cambiar estado",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                opciones,
-                opciones[0]
+                "No existen cambios de estado disponibles para este pedido.",
+                "Sin opciones",
+                JOptionPane.INFORMATION_MESSAGE
         );
 
-        if (seleccionado == null) return;  // canceló
-
-        try {
-            servicePedido.cambiarEstado(pedido.getIdPedido(), seleccionado, usuarioActual, rolActual);
-            JOptionPane.showMessageDialog(this,
-                    "Estado actualizado a: " + seleccionado,
-                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            cargarPedidos();   // refresca la tabla
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this,
-                    ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage(),
-                    "No permitido", JOptionPane.ERROR_MESSAGE);
-        }
+        return;
     }
+
+    EstadoPedido seleccionado =
+            (EstadoPedido) JOptionPane.showInputDialog(
+                    this,
+                    "Estado actual: " + pedido.getEstado()
+                    + "\nSeleccione el nuevo estado:",
+                    "Cambiar estado",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]
+            );
+
+    if (seleccionado == null) {
+        return;
+    }
+
+    try {
+
+        servicePedido.cambiarEstado(
+                pedido.getIdPedido(),
+                seleccionado,
+                usuarioActual,
+                rolActual
+        );
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Estado actualizado correctamente a: "
+                + seleccionado,
+                "Éxito",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        cargarPedidos();
+
+    } catch (RuntimeException ex) {
+
+        String mensaje =
+                ex.getCause() != null
+                ? ex.getCause().getMessage()
+                : ex.getMessage();
+
+        JOptionPane.showMessageDialog(
+                this,
+                mensaje,
+                "Cambio no permitido",
+                JOptionPane.ERROR_MESSAGE
+        );
+    }
+}
 
     /** Devuelve los estados a los que este rol puede transicionar */
     private EstadoPedido[] estadosPermitidosPorRol() {

@@ -4,12 +4,13 @@
  */
 package PresentacionJFRAME;
 
-import FuncionalidadBotones.PanelDelivery;
+import PanelesPrincipales.PanelDelivery;
 import Clases.Rol;
 import Clases.Usuario;
 import EstilosUI.EstilosUI;
-import FuncionalidadBotones.PanelAdmin;
-import FuncionalidadBotones.PanelCajero;
+import PanelesPrincipales.PanelAdmin;
+import PanelesPrincipales.PanelCajero;
+import PanelesPrincipales.PanelCocinero;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -36,15 +37,9 @@ public class SelectorDeRol extends JFrame {
         initUI();
         EstilosUI.aplicarEstiloVentana(this, "Seleccionar rol", 420, 500);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setResizable(false);
-    }
-
-    public SelectorDeRol() {
-        this.usuario = null;
-        initUI();
-        EstilosUI.aplicarEstiloVentana(this, "Seleccionar rol", 420, 500);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setResizable(false);
+        setResizable(true);
+        setMinimumSize(new Dimension(600, 650));
+        setLocationRelativeTo(null);
     }
 
     // ── UI ─────────────────────────────────────────────────────────────────
@@ -59,6 +54,7 @@ public class SelectorDeRol extends JFrame {
     }
 
     private JPanel buildHeader() {
+
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setBackground(EstilosUI.BG_PANEL);
@@ -114,15 +110,14 @@ public class SelectorDeRol extends JFrame {
 
     private JPanel buildRoles() {
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(EstilosUI.BG_DARK);
+        panel.setLayout(new GridLayout(0, 1, 0, 10));
         panel.setBorder(new EmptyBorder(20, 30, 10, 30));
+        panel.setBackground(EstilosUI.BG_DARK);
 
         // ✅ Condición corregida — antes estaba invertida con ||
         if (usuario != null && usuario.getRolCollection() != null) {
             for (Rol rol : usuario.getRolCollection()) {
                 panel.add(buildBotonRol(rol.getNombre()));
-                panel.add(Box.createVerticalStrut(10));
             }
         } else {
             JLabel sinRoles = EstilosUI.labelMuted("No hay roles asignados.");
@@ -154,7 +149,6 @@ public class SelectorDeRol extends JFrame {
         card.setBorder(new EmptyBorder(14, 16, 14, 16));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
         card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         JLabel lblIcono = new JLabel(icono);
         lblIcono.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
 
@@ -234,7 +228,7 @@ public class SelectorDeRol extends JFrame {
             case "Cajero" ->
                 new PanelCajero(usuario, rolSeleccionado);
             case "Cocinero" ->
-                new PanelCocineroBoceto(usuario, rolSeleccionado);
+                new PanelCocinero(usuario, rolSeleccionado);
             case "Repartidor" ->
                 new PanelDelivery(usuario, rolSeleccionado);
             default -> {

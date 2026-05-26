@@ -23,8 +23,8 @@ public class DetallePedidoTemporal {
     public DetallePedidoTemporal(Producto producto, int cantidad) {
         this.producto = producto;
         this.cantidad = cantidad;
-        this.subtotal = producto.getPrecio()
-                .multiply(BigDecimal.valueOf(cantidad));
+        this.subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(cantidad));
+
     }
     public Producto getProducto() {
         return producto;
